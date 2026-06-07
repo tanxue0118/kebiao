@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
@@ -35,16 +35,18 @@
     </nav>
 
     <section class="page active" id="schedulePage">
-      <nav class="days" id="dayTabs" aria-label="选择星期"></nav>
+      <nav class="days sr-only" id="dayTabs" aria-label="选择星期"></nav>
       <section class="panel schedule-panel">
         <div class="section-title">
           <div>
-            <p id="activeDayText">星期一</p>
-            <h2 id="courseCount">0 节课</h2>
+            <p id="activeDayText">本周课表</p>
+            <h2 id="courseCount">周视图</h2>
           </div>
           <button class="primary" id="addBtn" type="button">添加课程</button>
         </div>
-        <div class="course-list" id="courseList"></div>
+        <div class="timetable" id="courseList" aria-label="周课表">
+          <div class="timetable-empty">课程块将由脚本填充。</div>
+        </div>
       </section>
     </section>
 
@@ -129,6 +131,56 @@
             <input id="bgInput" type="file" accept="image/*">
             更换背景
           </label>
+          <div class="settings-divider" aria-hidden="true"></div>
+          <div class="form-row">
+            <label class="field setting-check">
+              <input id="showWeekend" type="checkbox">
+              <span>显示周末</span>
+            </label>
+            <label class="field">
+              <span>开学日期</span>
+              <input id="semesterStartDate" type="date">
+            </label>
+          </div>
+          <div class="form-row">
+            <label class="field">
+              <span>本学期周数</span>
+              <input id="semesterTotalWeeks" type="number" min="1" max="30" step="1">
+            </label>
+            <label class="field">
+              <span>假期时间段</span>
+              <input id="holidayRanges" placeholder="2026-04-04~2026-04-06, 2026-05-01~2026-05-05">
+            </label>
+          </div>
+          <fieldset class="settings-fieldset" id="visibleFields">
+            <legend>显示字段</legend>
+            <label><input type="checkbox" name="visibleFields" data-visible-field value="name"> 课程名</label>
+            <label><input type="checkbox" name="visibleFields" data-visible-field value="teacher"> 老师</label>
+            <label><input type="checkbox" name="visibleFields" data-visible-field value="location"> 地点</label>
+            <label><input type="checkbox" name="visibleFields" data-visible-field value="time"> 时间</label>
+            <label><input type="checkbox" name="visibleFields" data-visible-field value="sections"> 节次</label>
+            <label><input type="checkbox" name="visibleFields" data-visible-field value="weeks"> 周次</label>
+          </fieldset>
+          <div class="form-row">
+            <label class="field">
+              <span>格子高度</span>
+              <input id="cellHeight" type="range" min="64" max="140" step="4">
+            </label>
+            <label class="field">
+              <span>圆角</span>
+              <input id="cellRadius" type="range" min="4" max="28" step="1">
+            </label>
+          </div>
+          <div class="form-row">
+            <label class="field">
+              <span>间距</span>
+              <input id="cellGap" type="range" min="4" max="18" step="1">
+            </label>
+            <label class="field">
+              <span>透明度</span>
+              <input id="courseOpacity" type="range" min="0.2" max="1" step="0.05">
+            </label>
+          </div>
           <p class="hint" id="syncHint">读取 GitHub 后会缓存到本地；你编辑过的课程会优先保留。</p>
         </div>
       </section>

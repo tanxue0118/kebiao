@@ -73,18 +73,6 @@
       ]
     },
     {
-      "id": "1aacdbba-4632-4026-ae2e-53ff6fe35acc",
-      "name": "程序设计基础考试",
-      "teacher": "",
-      "position": "4-10",
-      "day": 1,
-      "color": 11,
-      "weeks": [],
-      "isCustomTime": true,
-      "customStartTime": "15:00",
-      "customEndTime": "17:00"
-    },
-    {
       "id": "e6e7c116-ac76-4518-a1a4-c817c2a25680",
       "name": "c语言考试",
       "teacher": "",
@@ -553,6 +541,6 @@
   ],
   "config": {
     "semesterStartDate": "2026-03-02",
-    "semesterTotalWeeks": 17
+    "semesterTotalWeeks": 16
   }
 }

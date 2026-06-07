@@ -6,6 +6,20 @@ const DEFAULT_REMOTE_URL = 'https://raw.githubusercontent.com/tanxue0118/kebiao/
 
 const DAY_NAMES = ['星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期日'];
 const SHORT_DAY_NAMES = ['一', '二', '三', '四', '五', '六', '日'];
+const DAILY_POEMS = [
+  '春风得意马蹄疾，一日看尽长安花。',
+  '会当凌绝顶，一览众山小。',
+  '海日生残夜，江春入旧年。',
+  '长风破浪会有时，直挂云帆济沧海。',
+  '纸上得来终觉浅，绝知此事要躬行。',
+  '少年辛苦终身事，莫向光阴惰寸功。',
+  '路漫漫其修远兮，吾将上下而求索。',
+  '欲穷千里目，更上一层楼。',
+  '博观而约取，厚积而薄发。',
+  '及时当勉励，岁月不待人。',
+  '不经一番寒彻骨，怎得梅花扑鼻香。',
+  '千磨万击还坚劲，任尔东西南北风。'
+];
 const DEFAULT_TIME_SLOTS = [
   { number: 1, startTime: '08:00', endTime: '08:45' },
   { number: 2, startTime: '08:55', endTime: '09:40' },
@@ -72,6 +86,7 @@ let activeDay = getTodayDay();
 
 const els = {
   todayText: document.getElementById('todayText'),
+  dailyPoem: document.getElementById('dailyPoem'),
   weekLabel: document.getElementById('weekLabel'),
   dateRange: document.getElementById('dateRange'),
   prevWeekBtn: document.getElementById('prevWeekBtn'),
@@ -112,6 +127,7 @@ function init() {
   ensureSettingsControls();
   bindSettingsControls();
   renderDayTabs();
+  renderDailyPoem();
   renderWeek();
   renderTimetable();
   renderToday();
@@ -354,6 +370,18 @@ function renderWeek() {
   }
   if (els.weekLabel) els.weekLabel.textContent = `第 ${activeWeek} 周`;
   if (els.dateRange) els.dateRange.textContent = `${formatDate(start)} - ${formatDate(end)}`;
+}
+
+function renderDailyPoem() {
+  if (!els.dailyPoem) return;
+  const dateKey = new Intl.DateTimeFormat('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).format(new Date());
+  let hash = 0;
+  for (const char of dateKey) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+  els.dailyPoem.textContent = DAILY_POEMS[hash % DAILY_POEMS.length];
 }
 
 function renderDayTabs() {

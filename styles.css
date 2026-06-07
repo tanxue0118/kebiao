@@ -330,6 +330,21 @@ label {
   font-weight: 800;
 }
 
+.daily-poem {
+  width: fit-content;
+  max-width: min(72vw, 520px);
+  margin: 10px 0 0;
+  border: 1px solid rgba(255, 255, 255, .46);
+  border-radius: 999px;
+  padding: 8px 12px;
+  color: var(--ink-soft);
+  background: rgba(255, 255, 255, .30);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .48);
+  font-size: clamp(12px, 2vw, 14px);
+  font-weight: 800;
+  line-height: 1.35;
+}
+
 .week-chip {
   display: grid;
   gap: 2px;

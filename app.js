@@ -2,7 +2,9 @@ const STORAGE_KEY = 'roommate-schedule:v1';
 const BG_KEY = 'roommate-schedule:bg';
 const DELETED_KEY = 'roommate-schedule:deleted';
 const SETTINGS_KEY = 'roommate-schedule:settings:v1';
+const DAILY_POEM_KEY = 'roommate-schedule:daily-poem:v1';
 const DEFAULT_REMOTE_URL = 'https://raw.githubusercontent.com/tanxue0118/kebiao/main/schedule.json';
+const DAILY_POEM_URL = 'https://v1.jinrishici.com/all.json';
 
 const DAY_NAMES = ['星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期日'];
 const SHORT_DAY_NAMES = ['一', '二', '三', '四', '五', '六', '日'];
@@ -78,7 +80,7 @@ const DEFAULT_SETTINGS = {
   cellRadius: 8,
   cellGap: 6,
   courseOpacity: 0.92,
-  cardOpacity: 0.48
+  cardOpacity: 0.42
 };
 
 const fallbackSchedule = {
@@ -215,7 +217,7 @@ function loadSettings(schedule) {
   normalized.cellRadius = toPositiveInt(normalized.cellRadius, DEFAULT_SETTINGS.cellRadius);
   normalized.cellGap = toPositiveInt(normalized.cellGap, DEFAULT_SETTINGS.cellGap);
   normalized.courseOpacity = clampNumber(Number(normalized.courseOpacity), 0.2, 1, DEFAULT_SETTINGS.courseOpacity);
-  normalized.cardOpacity = clampNumber(Number(normalized.cardOpacity), 0.25, 1, DEFAULT_SETTINGS.cardOpacity);
+  normalized.cardOpacity = clampNumber(Number(normalized.cardOpacity), 0.06, 1, DEFAULT_SETTINGS.cardOpacity);
   return normalized;
 }
 
@@ -410,16 +412,57 @@ function renderWeek() {
   if (els.dateRange) els.dateRange.textContent = `${formatDate(start)} - ${formatDate(end)}`;
 }
 
-function renderDailyPoem() {
+async function renderDailyPoem() {
   if (!els.dailyPoem) return;
   const dateKey = new Intl.DateTimeFormat('zh-CN', {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit'
   }).format(new Date());
+  const cached = readDailyPoemCache(dateKey);
+  if (cached) {
+    els.dailyPoem.textContent = cached;
+    return;
+  }
+
+  els.dailyPoem.textContent = getLocalDailyPoem(dateKey);
+  try {
+    const res = await fetch(DAILY_POEM_URL, { cache: 'no-store' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const remotePoem = formatRemotePoem(data);
+    if (remotePoem) {
+      localStorage.setItem(DAILY_POEM_KEY, JSON.stringify({ date: dateKey, text: remotePoem }));
+      els.dailyPoem.textContent = remotePoem;
+    }
+  } catch {
+    localStorage.setItem(DAILY_POEM_KEY, JSON.stringify({ date: dateKey, text: els.dailyPoem.textContent }));
+  }
+}
+
+function readDailyPoemCache(dateKey) {
+  try {
+    const cached = JSON.parse(localStorage.getItem(DAILY_POEM_KEY));
+    return cached?.date === dateKey ? cached.text : '';
+  } catch {
+    localStorage.removeItem(DAILY_POEM_KEY);
+    return '';
+  }
+}
+
+function formatRemotePoem(data) {
+  const content = String(data.content || data.hitokoto || '').trim();
+  if (!content) return '';
+  const author = String(data.author || data.origin?.author || '').trim();
+  const title = String(data.origin || data.title || data.origin?.title || '').trim();
+  const from = [author, title && `《${title}》`].filter(Boolean).join(' ');
+  return from ? `${content} —— ${from}` : content;
+}
+
+function getLocalDailyPoem(dateKey) {
   let hash = 0;
   for (const char of dateKey) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
-  els.dailyPoem.textContent = DAILY_POEMS[hash % DAILY_POEMS.length];
+  return DAILY_POEMS[hash % DAILY_POEMS.length];
 }
 
 function renderDayTabs() {
@@ -666,7 +709,7 @@ function ensureSettingsControls() {
     <div class="form-row">
       <label class="field"><span>间距</span><input id="cellGap" type="number" min="0" max="20"></label>
       <label class="field"><span>课程透明度</span><input id="courseOpacity" type="number" min="0.2" max="1" step="0.05"></label>
-      <label class="field"><span>卡片透明度</span><input id="cardOpacity" type="number" min="0.25" max="1" step="0.05"></label>
+      <label class="field"><span>卡片透明度</span><input id="cardOpacity" type="number" min="0.06" max="1" step="0.04"></label>
     </div>
   `;
   stack.appendChild(panel);
@@ -725,7 +768,7 @@ function readSettingsControls() {
     cellRadius: toPositiveInt(els.settings.cellRadius?.value, DEFAULT_SETTINGS.cellRadius),
     cellGap: toPositiveInt(els.settings.cellGap?.value, DEFAULT_SETTINGS.cellGap),
     courseOpacity: clampNumber(Number(els.settings.courseOpacity?.value), 0.2, 1, DEFAULT_SETTINGS.courseOpacity),
-    cardOpacity: clampNumber(Number(els.settings.cardOpacity?.value), 0.25, 1, DEFAULT_SETTINGS.cardOpacity)
+    cardOpacity: clampNumber(Number(els.settings.cardOpacity?.value), 0.06, 1, DEFAULT_SETTINGS.cardOpacity)
   };
   if (!settings.visibleFields.length) settings.visibleFields = ['name'];
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));

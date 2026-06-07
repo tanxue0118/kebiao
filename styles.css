@@ -27,7 +27,7 @@
   --cell-radius: 8px;
   --cell-gap: 6px;
   --course-opacity: .92;
-  --card-opacity: .48;
+  --card-opacity: .42;
   --time-rail-width: 78px;
   --radius-sm: 8px;
   --radius-md: 14px;
@@ -1872,4 +1872,40 @@ input[type="range"] {
   #visibleFields {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+/* Card opacity must affect the whole glass surface, not only course blocks. */
+.hero,
+.panel,
+.card,
+.settings-panel,
+.settings-group,
+.today-course,
+#courseList .timetable-grid,
+.app-tabs {
+  background:
+    radial-gradient(circle at 18% 0%, rgba(255, 255, 255, var(--card-opacity)), transparent 42%),
+    rgba(255, 255, 255, var(--card-opacity)) !important;
+}
+
+.hero::before,
+.panel::before,
+.card::before,
+.settings-panel::before,
+.settings-group::before,
+.today-course::before,
+.app-tabs::before {
+  opacity: calc(var(--card-opacity) * .75) !important;
+}
+
+#courseList .timetable-header,
+#courseList .timetable-cell,
+#courseList .time-cell,
+.week-chip,
+.daily-poem,
+.today-time,
+.settings-fieldset label,
+#visibleFields label,
+.hint {
+  background: rgba(255, 255, 255, calc(var(--card-opacity) * .75)) !important;
 }

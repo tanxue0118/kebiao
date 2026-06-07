@@ -185,8 +185,12 @@ function normalizeSchedule(schedule) {
 
 function normalizeCourse(course, timeSlots) {
   const [timeStart, timeEnd] = String(course.time || '').split('-').map((part) => part.trim());
-  const startSection = Number(course.startSection || course.startPeriod || course.sectionStart || 1);
-  const endSection = Number(course.endSection || course.endPeriod || course.sectionEnd || startSection);
+  const customStart = course.customStartTime || course.startTime || timeStart || '';
+  const customEnd = course.customEndTime || course.endTime || timeEnd || '';
+  const inferredStart = findSlotByTime(timeSlots, customStart, 'startTime') || 1;
+  const inferredEnd = findSlotByTime(timeSlots, customEnd, 'endTime') || inferredStart;
+  const startSection = Number(course.startSection || course.startPeriod || course.sectionStart || inferredStart);
+  const endSection = Number(course.endSection || course.endPeriod || course.sectionEnd || inferredEnd || startSection);
   const startSlot = timeSlots.find((slot) => slot.number === startSection);
   const endSlot = timeSlots.find((slot) => slot.number === endSection);
   const normalized = {
@@ -198,11 +202,30 @@ function normalizeCourse(course, timeSlots) {
     weeks: normalizeWeeks(course.weeks || course.weekText || '1-16'),
     startSection,
     endSection,
-    startTime: course.startTime || timeStart || startSlot?.startTime || '',
-    endTime: course.endTime || timeEnd || endSlot?.endTime || ''
+    startTime: customStart || startSlot?.startTime || '',
+    endTime: customEnd || endSlot?.endTime || ''
   };
   normalized.id = normalized.id || createCourseId(normalized);
   return normalized;
+}
+
+function findSlotByTime(timeSlots, time, key) {
+  if (!time) return null;
+  const exact = timeSlots.find((slot) => slot[key] === time);
+  if (exact) return exact.number;
+  const target = timeToMinutes(time);
+  if (!Number.isFinite(target)) return null;
+  const scored = timeSlots
+    .map((slot) => ({ slot, distance: Math.abs(timeToMinutes(slot[key]) - target) }))
+    .filter((item) => Number.isFinite(item.distance))
+    .sort((a, b) => a.distance - b.distance);
+  return scored[0]?.slot.number || null;
+}
+
+function timeToMinutes(time) {
+  const [hour, minute] = String(time).split(':').map(Number);
+  if (!Number.isFinite(hour) || !Number.isFinite(minute)) return NaN;
+  return hour * 60 + minute;
 }
 
 function getScheduleStart(schedule) {

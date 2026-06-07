@@ -1254,6 +1254,147 @@ h3,
   }
 }
 
+/* Final product polish */
+.hero,
+.panel,
+.settings-group,
+.today-course,
+#courseList .timetable-grid,
+.app-tabs {
+  border-color: rgba(255, 255, 255, .56);
+  background:
+    radial-gradient(circle at 16% 0%, rgba(255, 255, 255, .70), transparent 42%),
+    linear-gradient(145deg, rgba(255, 255, 255, .48), rgba(255, 255, 255, .18));
+  box-shadow:
+    0 18px 56px rgba(40, 67, 86, .14),
+    inset 0 1px 0 rgba(255, 255, 255, .62);
+}
+
+button,
+.file-button {
+  min-height: 44px;
+  border-radius: 999px;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+button.primary,
+.app-tabs button.active {
+  background:
+    radial-gradient(circle at 24% 0%, rgba(255, 255, 255, .34), transparent 44%),
+    linear-gradient(135deg, rgba(35, 119, 211, .94), rgba(15, 143, 138, .90));
+}
+
+.settings-stack {
+  display: grid;
+  gap: 14px;
+}
+
+.settings-group {
+  display: grid;
+  gap: 14px;
+  border-radius: 24px;
+  padding: clamp(15px, 3vw, 22px);
+}
+
+.settings-group .section-title {
+  margin: 0;
+  padding: 0 0 10px;
+}
+
+.settings-divider {
+  display: none;
+}
+
+#settingsPage .settings-stack > .field:nth-child(1)::before,
+#settingsPage .settings-stack > .form-row:nth-child(5)::before,
+#settingsPage .settings-stack > .settings-fieldset::before,
+#settingsPage .settings-stack > fieldset::before,
+#settingsPage .settings-stack > .form-row:nth-child(8)::before {
+  content: none;
+}
+
+#todayPage .today-panel {
+  min-height: calc(100vh - 250px);
+}
+
+.today-course-list {
+  display: grid;
+  gap: 12px;
+}
+
+.today-course {
+  display: grid;
+  grid-template-columns: minmax(92px, .24fr) minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  border: 1px solid rgba(255, 255, 255, .58);
+  border-radius: 22px;
+  padding: clamp(14px, 3vw, 20px);
+  cursor: pointer;
+}
+
+.today-time {
+  display: grid;
+  place-items: center;
+  min-height: 54px;
+  border-radius: 18px;
+  color: var(--blue);
+  background: rgba(255, 255, 255, .38);
+  font-weight: 900;
+}
+
+.today-main {
+  min-width: 0;
+}
+
+.today-main h3,
+#courseList .timetable-course h3 {
+  color: var(--ink);
+  font-weight: 900;
+}
+
+.today-main p {
+  margin: 5px 0;
+  color: var(--ink-soft);
+}
+
+.today-main span {
+  display: inline-flex;
+  border-radius: 999px;
+  padding: 5px 9px;
+  color: var(--teal);
+  background: rgba(255, 255, 255, .42);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+#courseList .timetable-course {
+  display: grid;
+  gap: 7px;
+  border-width: 1px;
+}
+
+#courseList .timetable-course .course-meta span {
+  border-radius: 999px;
+}
+
+.field input,
+.field select {
+  min-height: 46px;
+}
+
+@media (max-width: 640px) {
+  .today-course {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .today-time {
+    width: fit-content;
+    padding-inline: 12px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -1262,5 +1403,452 @@ h3,
     transition-duration: .01ms !important;
     animation-duration: .01ms !important;
     animation-iteration-count: 1 !important;
+  }
+}
+
+/* iOS liquid glass polish */
+:root {
+  --ink: #162635;
+  --ink-soft: #526678;
+  --ink-muted: #7f91a1;
+  --paper: #eef6f8;
+  --glass: rgba(255, 255, 255, .42);
+  --glass-strong: rgba(255, 255, 255, .64);
+  --glass-faint: rgba(255, 255, 255, .24);
+  --line: rgba(93, 120, 139, .20);
+  --shadow: 0 24px 76px rgba(35, 68, 86, .18);
+  --shadow-soft: 0 12px 38px rgba(35, 68, 86, .12);
+  --blue: #1e78c8;
+  --teal: #11877f;
+  --amber: #b06d1d;
+  --blur: 28px;
+  --radius-lg: 24px;
+  --radius-xl: 34px;
+}
+
+html {
+  background: #e5f0f3;
+}
+
+body {
+  background: transparent;
+}
+
+body::before {
+  z-index: -3;
+  background:
+    radial-gradient(circle at 10% 7%, rgba(90, 170, 211, .54), transparent 28%),
+    radial-gradient(circle at 84% 9%, rgba(247, 184, 92, .42), transparent 26%),
+    radial-gradient(circle at 76% 88%, rgba(88, 181, 149, .36), transparent 30%),
+    linear-gradient(145deg, rgba(247, 252, 253, .92), rgba(221, 238, 244, .84) 48%, rgba(248, 240, 226, .72));
+  mask-image: none;
+}
+
+body::after {
+  z-index: -1;
+  background:
+    linear-gradient(rgba(255, 255, 255, .18) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, .16) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255, 255, 255, .18), rgba(255, 255, 255, .05));
+  background-size: 36px 36px, 36px 36px, auto;
+  backdrop-filter: blur(.7px) saturate(112%);
+  -webkit-backdrop-filter: blur(.7px) saturate(112%);
+}
+
+.bg-layer {
+  z-index: -2;
+  opacity: .72;
+  background-position: center;
+  background-size: cover;
+  filter: saturate(1.12) contrast(1.03);
+}
+
+header,
+.app-header,
+.topbar,
+.toolbar,
+.panel,
+.card,
+.course-card,
+.lesson-card,
+.schedule-card,
+.settings-panel,
+.modal,
+.dialog,
+.toast {
+  border-color: rgba(255, 255, 255, .56);
+  background:
+    radial-gradient(circle at 18% 0%, rgba(255, 255, 255, .66), transparent 42%),
+    radial-gradient(circle at 100% 105%, rgba(158, 219, 224, .22), transparent 34%),
+    linear-gradient(145deg, rgba(255, 255, 255, .62), rgba(255, 255, 255, .25));
+  box-shadow:
+    0 22px 70px rgba(36, 66, 84, .14),
+    inset 0 1px 0 rgba(255, 255, 255, .62),
+    inset 0 -1px 0 rgba(255, 255, 255, .18);
+  backdrop-filter: blur(var(--blur)) saturate(185%) contrast(1.03);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(185%) contrast(1.03);
+}
+
+header::before,
+.app-header::before,
+.topbar::before,
+.toolbar::before,
+.panel::before,
+.card::before,
+.course-card::before,
+.lesson-card::before,
+.schedule-card::before,
+.settings-panel::before,
+.modal::before,
+.dialog::before {
+  background:
+    linear-gradient(115deg, rgba(255, 255, 255, .76), transparent 32%, rgba(255, 255, 255, .20) 68%, rgba(255, 255, 255, .44)),
+    linear-gradient(180deg, rgba(255, 255, 255, .20), transparent 44%);
+  opacity: .72;
+}
+
+.hero {
+  overflow: hidden;
+}
+
+.hero h1 {
+  text-shadow: 0 1px 0 rgba(255, 255, 255, .70);
+}
+
+.week-switcher,
+.section-title,
+.form-actions {
+  position: relative;
+  z-index: 1;
+}
+
+.app-tabs {
+  grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+  gap: 5px;
+  padding: 5px;
+  border-color: rgba(255, 255, 255, .58);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 255, 255, .58), transparent 52%),
+    linear-gradient(145deg, rgba(255, 255, 255, .44), rgba(255, 255, 255, .20));
+  box-shadow:
+    0 14px 44px rgba(38, 67, 83, .14),
+    inset 0 1px 0 rgba(255, 255, 255, .70);
+  backdrop-filter: blur(30px) saturate(190%);
+  -webkit-backdrop-filter: blur(30px) saturate(190%);
+}
+
+.app-tabs button {
+  min-height: 46px;
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  font-weight: 800;
+}
+
+.app-tabs button.active,
+.app-tabs [aria-current="true"] {
+  color: #f7fbff;
+  background:
+    radial-gradient(circle at 30% 0%, rgba(255, 255, 255, .36), transparent 44%),
+    linear-gradient(135deg, rgba(30, 120, 200, .94), rgba(17, 135, 127, .88));
+  box-shadow:
+    0 10px 24px rgba(30, 120, 200, .24),
+    inset 0 1px 0 rgba(255, 255, 255, .42);
+}
+
+button,
+.btn,
+[role="button"],
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+.file-button {
+  border-color: rgba(255, 255, 255, .64);
+  background:
+    radial-gradient(circle at 24% 0%, rgba(255, 255, 255, .70), transparent 48%),
+    linear-gradient(180deg, rgba(255, 255, 255, .56), rgba(255, 255, 255, .30));
+  box-shadow:
+    0 9px 24px rgba(34, 67, 88, .12),
+    inset 0 1px 0 rgba(255, 255, 255, .72);
+}
+
+input,
+select,
+textarea {
+  border-color: rgba(96, 122, 141, .20);
+  background: rgba(255, 255, 255, .50);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .66),
+    0 1px 0 rgba(255, 255, 255, .30);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: rgba(30, 120, 200, .58);
+  background: rgba(255, 255, 255, .68);
+  box-shadow:
+    0 0 0 4px rgba(30, 120, 200, .13),
+    inset 0 1px 0 rgba(255, 255, 255, .76);
+}
+
+#schedulePage .schedule-panel {
+  padding: clamp(14px, 2.6vw, 24px);
+}
+
+#courseList.timetable {
+  position: relative;
+}
+
+#courseList .timetable-grid {
+  border-radius: calc(var(--cell-radius) + 12px);
+  padding: 10px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, .30), rgba(255, 255, 255, .12));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .58),
+    0 14px 42px rgba(38, 67, 84, .10);
+}
+
+#courseList .timetable-header,
+#courseList .timetable-cell,
+#courseList .time-cell {
+  border-color: rgba(255, 255, 255, .48) !important;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, .46), rgba(255, 255, 255, .18)) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .58) !important;
+}
+
+#courseList .timetable-header {
+  color: var(--ink);
+  letter-spacing: 0;
+}
+
+#courseList .time-cell {
+  color: var(--ink-muted);
+}
+
+#courseList .time-cell strong {
+  color: var(--teal) !important;
+}
+
+#courseList .timetable-course,
+#schedulePage .course-list > .course-card {
+  border-color: rgba(255, 255, 255, .60);
+  background:
+    radial-gradient(circle at 16% 0%, rgba(255, 255, 255, .72), transparent 42%),
+    linear-gradient(145deg, rgba(255, 255, 255, .68), rgba(224, 243, 247, .42)) !important;
+  box-shadow:
+    0 14px 34px rgba(34, 74, 94, .14),
+    inset 0 1px 0 rgba(255, 255, 255, .70);
+}
+
+#courseList .timetable-course:nth-of-type(5n + 1) {
+  background: linear-gradient(145deg, rgba(255, 255, 255, .70), rgba(221, 241, 255, .52)) !important;
+}
+
+#courseList .timetable-course:nth-of-type(5n + 2) {
+  background: linear-gradient(145deg, rgba(255, 255, 255, .70), rgba(219, 247, 239, .52)) !important;
+}
+
+#courseList .timetable-course:nth-of-type(5n + 3) {
+  background: linear-gradient(145deg, rgba(255, 255, 255, .70), rgba(255, 239, 210, .56)) !important;
+}
+
+#courseList .timetable-course:nth-of-type(5n + 4) {
+  background: linear-gradient(145deg, rgba(255, 255, 255, .70), rgba(227, 242, 221, .54)) !important;
+}
+
+#courseList .timetable-course .course-meta span {
+  background: rgba(255, 255, 255, .46);
+  border-color: rgba(255, 255, 255, .54);
+}
+
+#settingsPage .settings-panel {
+  width: min(860px, 100%);
+  overflow: hidden;
+}
+
+#settingsPage .section-title {
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(103, 126, 144, .16);
+}
+
+.settings-stack {
+  gap: 14px;
+}
+
+#settingsPage .settings-stack > .field,
+#settingsPage .settings-stack > .form-row,
+#settingsPage .settings-stack > .settings-actions,
+#settingsPage .settings-stack > .file-button,
+#settingsPage .settings-stack > .settings-fieldset,
+#settingsPage .settings-stack > fieldset {
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, .54);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(255, 255, 255, .62), transparent 38%),
+    linear-gradient(145deg, rgba(255, 255, 255, .46), rgba(255, 255, 255, .20));
+  box-shadow:
+    0 10px 30px rgba(35, 68, 86, .10),
+    inset 0 1px 0 rgba(255, 255, 255, .62);
+}
+
+#settingsPage .settings-stack > .field,
+#settingsPage .settings-stack > .form-row,
+#settingsPage .settings-stack > .settings-fieldset,
+#settingsPage .settings-stack > fieldset {
+  padding: 18px;
+}
+
+#settingsPage .settings-stack > .settings-actions {
+  padding: 10px;
+}
+
+#settingsPage .settings-stack > .file-button {
+  justify-content: space-between;
+  min-height: 58px;
+  padding: 15px 18px;
+  border-radius: 22px;
+  font-weight: 800;
+}
+
+#settingsPage .settings-stack > .file-button::after {
+  content: "选择图片";
+  color: var(--ink-muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+#settingsPage .settings-stack > .field:nth-child(1)::before,
+#settingsPage .settings-stack > .form-row:nth-child(5)::before,
+#settingsPage .settings-stack > .settings-fieldset::before,
+#settingsPage .settings-stack > fieldset::before,
+#settingsPage .settings-stack > .form-row:nth-child(8)::before {
+  display: block;
+  margin-bottom: 12px;
+  color: var(--teal);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+#settingsPage .settings-stack > .field:nth-child(1)::before {
+  content: "数据源";
+}
+
+#settingsPage .settings-stack > .form-row:nth-child(5)::before {
+  content: "学期规则";
+  grid-column: 1 / -1;
+}
+
+#settingsPage .settings-stack > .settings-fieldset::before,
+#settingsPage .settings-stack > fieldset::before {
+  content: "课程块内容";
+}
+
+#settingsPage .settings-stack > .form-row:nth-child(8)::before {
+  content: "网格外观";
+  grid-column: 1 / -1;
+}
+
+.settings-divider {
+  height: 1px;
+  margin: 2px 8px;
+  background: linear-gradient(90deg, transparent, rgba(85, 111, 130, .22), transparent);
+}
+
+.field.setting-check {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.field.setting-check input[type="checkbox"],
+#visibleFields input[type="checkbox"] {
+  width: 22px;
+  height: 22px;
+  accent-color: var(--teal);
+}
+
+.settings-fieldset,
+#visibleFields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.settings-fieldset legend,
+#visibleFields legend {
+  padding: 0 6px;
+  color: var(--ink);
+  font-weight: 800;
+}
+
+.settings-fieldset label,
+#visibleFields label {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 9px;
+  border-radius: 14px;
+  padding: 10px 12px;
+  color: var(--ink-soft);
+  background: rgba(255, 255, 255, .34);
+  border: 1px solid rgba(255, 255, 255, .44);
+}
+
+input[type="range"] {
+  height: 42px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  accent-color: var(--blue);
+}
+
+.hint,
+#syncHint {
+  margin: 0;
+  border-radius: 18px;
+  padding: 13px 15px;
+  background: rgba(255, 255, 255, .32);
+  border: 1px solid rgba(255, 255, 255, .44);
+}
+
+@media (min-width: 760px) {
+  #settingsPage .settings-stack > .form-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  body::after {
+    background-size: 30px 30px, 30px 30px, auto;
+  }
+
+  .app-tabs {
+    grid-template-columns: repeat(auto-fit, minmax(64px, 1fr));
+  }
+
+  #courseList .timetable-grid {
+    padding: 8px;
+  }
+
+  #settingsPage .settings-stack > .field,
+  #settingsPage .settings-stack > .form-row,
+  #settingsPage .settings-stack > .settings-fieldset,
+  #settingsPage .settings-stack > fieldset {
+    padding: 15px;
+  }
+
+  .settings-fieldset,
+  #visibleFields {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

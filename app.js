@@ -1,5 +1,4 @@
 const STORAGE_KEY = 'roommate-schedule:v1';
-const URL_KEY = 'roommate-schedule:url';
 const BG_KEY = 'roommate-schedule:bg';
 const DELETED_KEY = 'roommate-schedule:deleted';
 const SETTINGS_KEY = 'roommate-schedule:settings:v1';
@@ -68,7 +67,7 @@ const fallbackSchedule = {
 
 let state = loadSchedule();
 let settings = loadSettings(state);
-let activeWeek = clampWeek(getCurrentWeek(getSemesterStart()), getSemesterWeeks());
+let activeWeek = clampMinWeek(getCurrentWeek(getSemesterStart()));
 let activeDay = getTodayDay();
 
 const els = {
@@ -78,12 +77,10 @@ const els = {
   prevWeekBtn: document.getElementById('prevWeekBtn'),
   nextWeekBtn: document.getElementById('nextWeekBtn'),
   pageTabs: document.querySelectorAll('[data-page]'),
-  remoteUrl: document.getElementById('remoteUrl'),
-  loadBtn: document.getElementById('loadBtn'),
-  resetRemoteBtn: document.getElementById('resetRemoteBtn'),
   bgInput: document.getElementById('bgInput'),
   bgLayer: document.getElementById('bgLayer'),
-  syncHint: document.getElementById('syncHint'),
+  todaySummary: document.getElementById('todaySummary'),
+  todayCourseList: document.getElementById('todayCourseList'),
   dayTabs: document.getElementById('dayTabs'),
   activeDayText: document.getElementById('activeDayText'),
   courseCount: document.getElementById('courseCount'),
@@ -111,25 +108,24 @@ init();
 
 function init() {
   injectTimetableStyles();
-  if (els.remoteUrl) els.remoteUrl.value = localStorage.getItem(URL_KEY) || DEFAULT_REMOTE_URL;
   restoreBackground();
   ensureSettingsControls();
   bindSettingsControls();
   renderDayTabs();
   renderWeek();
   renderTimetable();
+  renderToday();
   resetForm(false);
 
   els.prevWeekBtn?.addEventListener('click', () => changeWeek(-1));
   els.nextWeekBtn?.addEventListener('click', () => changeWeek(1));
   els.pageTabs.forEach((tab) => tab.addEventListener('click', () => showPage(tab.dataset.page)));
-  els.loadBtn?.addEventListener('click', () => loadRemoteSchedule());
-  els.resetRemoteBtn?.addEventListener('click', resetRemoteUrl);
   els.bgInput?.addEventListener('change', changeBackground);
   els.addBtn?.addEventListener('click', () => resetForm());
   els.form?.addEventListener('submit', saveCourse);
   els.deleteBtn?.addEventListener('click', deleteCourse);
 
+  if (document.getElementById('todayPage')) showPage('todayPage');
   window.setTimeout(() => loadRemoteSchedule(DEFAULT_REMOTE_URL, { auto: true }), 0);
 }
 
@@ -242,36 +238,26 @@ function normalizeWeeks(weeks) {
 }
 
 async function loadRemoteSchedule(urlOverride, options = {}) {
-  const url = (urlOverride || els.remoteUrl?.value || DEFAULT_REMOTE_URL).trim();
-  if (!url) {
-    showStatus('先填写 GitHub raw JSON 地址');
-    return;
-  }
+  const url = (urlOverride || DEFAULT_REMOTE_URL).trim();
 
   try {
-    if (els.loadBtn && !options.auto) {
-      els.loadBtn.disabled = true;
-      els.loadBtn.textContent = '读取中...';
-    }
     const res = await fetch(url, { cache: 'no-store' });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const remote = normalizeSchedule(await res.json());
     state = mergeRemoteWithLocal(remote, state);
     settings = loadSettings(state);
-    activeWeek = clampWeek(activeWeek || getCurrentWeek(getSemesterStart()), getSemesterWeeks());
+    activeWeek = clampMinWeek(activeWeek || getCurrentWeek(getSemesterStart()));
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    localStorage.setItem(URL_KEY, url);
     writeSettingsControls();
     renderDayTabs();
     renderWeek();
     renderTimetable();
+    renderToday();
     resetForm(false);
-    showStatus(options.auto ? '已自动读取远程课表，并合并本地修改' : '已读取 GitHub，并保留本地修改');
+    showStatus(options.auto ? '已自动读取课表，并合并本地修改' : '已读取课表，并保留本地修改');
   } catch (error) {
     if (!options.auto) showStatus(`读取失败，继续使用本地缓存：${error.message}`);
     else showStatus('远程读取失败，已使用本地缓存或内置 fallback');
-  } finally {
-    if (els.loadBtn) els.loadBtn.disabled = false;
   }
 }
 
@@ -327,6 +313,7 @@ function saveCourse(event) {
   persist();
   renderDayTabs();
   renderTimetable();
+  renderToday();
   fillForm(course);
   showPage('schedulePage');
   showStatus('已保存到本地缓存');
@@ -370,8 +357,8 @@ function renderTimetable() {
     .sort((a, b) => a.dayOfWeek - b.dayOfWeek || a.startSection - b.startSection);
   const isHoliday = isHolidayWeek(activeWeek);
 
-  if (els.activeDayText) els.activeDayText.textContent = isHoliday ? '本周是假期' : `${visibleDays.length} 天视图`;
-  if (els.courseCount) els.courseCount.textContent = courses.length ? `${courses.length} 门课` : '本周无课';
+  if (els.activeDayText) els.activeDayText.textContent = isHoliday ? '假期中' : `${visibleDays.length} 天视图`;
+  if (els.courseCount) els.courseCount.textContent = isHoliday ? `第 ${activeWeek} 周` : (courses.length ? `${courses.length} 门课` : '本周无课');
   if (!els.courseList) return;
 
   els.courseList.innerHTML = '';
@@ -422,16 +409,61 @@ function renderTimetable() {
   if (isHoliday) {
     const hint = document.createElement('p');
     hint.className = 'hint holiday-hint';
-    hint.textContent = `第 ${activeWeek} 周在假期范围内，课程已淡化显示；请以学校通知为准。`;
+    hint.textContent = `第 ${activeWeek} 周是假期中，继续切换周次可以查看后续假期或下学期。`;
     els.courseList.prepend(hint);
   }
 
   if (!courses.length) {
     const empty = document.createElement('div');
     empty.className = 'empty';
-    empty.textContent = isHoliday ? '假期周暂无课程。' : '这一周没有课程。';
+    empty.textContent = isHoliday ? '假期中，暂无课程。' : '这一周没有课程。';
     els.courseList.appendChild(empty);
   }
+}
+
+function renderToday() {
+  if (!els.todaySummary || !els.todayCourseList) return;
+
+  const today = new Date();
+  const todayDay = getTodayDay();
+  const todayWeek = clampMinWeek(getCurrentWeek(getSemesterStart()));
+  const todayCourses = state.courses
+    .filter((course) => course.dayOfWeek === todayDay && includesWeek(course.weeks, todayWeek))
+    .sort((a, b) => a.startSection - b.startSection || String(a.startTime).localeCompare(String(b.startTime)));
+  const isHoliday = isHolidayWeek(todayWeek);
+  const dayText = new Intl.DateTimeFormat('zh-CN', {
+    month: 'long',
+    day: 'numeric',
+    weekday: 'long'
+  }).format(today);
+
+  els.todaySummary.textContent = isHoliday
+    ? `${dayText} · 第 ${todayWeek} 周 · 假期中`
+    : `${dayText} · 第 ${todayWeek} 周 · ${todayCourses.length ? `${todayCourses.length} 门课` : '今天没课'}`;
+  els.todayCourseList.innerHTML = '';
+
+  if (!todayCourses.length) {
+    const empty = document.createElement('div');
+    empty.className = 'empty today-empty';
+    empty.textContent = isHoliday ? '今天是假期中，好好休息。' : '今天没有安排课程。';
+    els.todayCourseList.appendChild(empty);
+    return;
+  }
+
+  todayCourses.forEach((course) => {
+    const card = document.createElement('article');
+    card.className = 'today-course';
+    card.innerHTML = `
+      <div class="today-time">${escapeHtml(course.startTime || '')}${course.endTime ? ` - ${escapeHtml(course.endTime)}` : ''}</div>
+      <div class="today-main">
+        <h3>${escapeHtml(course.name)}</h3>
+        <p>${escapeHtml(course.teacher)} · ${escapeHtml(course.location)}</p>
+        <span>第 ${course.startSection}-${course.endSection} 节</span>
+      </div>
+    `;
+    card.addEventListener('click', () => fillForm(course));
+    els.todayCourseList.appendChild(card);
+  });
 }
 
 function createGridHeader(text, column, row) {
@@ -603,10 +635,11 @@ function readSettingsControls() {
   };
   if (!settings.visibleFields.length) settings.visibleFields = ['name'];
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-  activeWeek = clampWeek(activeWeek, getSemesterWeeks());
+  activeWeek = clampMinWeek(activeWeek);
   renderDayTabs();
   renderWeek();
   renderTimetable();
+  renderToday();
   resetForm(false);
 }
 
@@ -692,6 +725,7 @@ function injectTimetableStyles() {
 }
 
 function isHolidayWeek(week) {
+  if (week > getSemesterWeeks()) return true;
   return parseHolidayRanges(settings.holidayRanges).some((range) => {
     if (range.type === 'week') return week >= range.start && week <= range.end;
     const weekStart = startOfWeek(addDays(parseDate(getSemesterStart()), (week - 1) * 7));
@@ -768,6 +802,7 @@ function deleteCourse() {
   state.courses = state.courses.filter((course) => course.id !== id);
   persist();
   renderTimetable();
+  renderToday();
   resetForm(false);
   showPage('schedulePage');
   showStatus('已删除');
@@ -827,9 +862,10 @@ function showPage(pageId) {
 }
 
 function changeWeek(delta) {
-  activeWeek = clampWeek(activeWeek + delta, getSemesterWeeks());
+  activeWeek = clampMinWeek(activeWeek + delta);
   renderWeek();
   renderTimetable();
+  renderToday();
   resetForm(false);
 }
 
@@ -840,21 +876,21 @@ function changeBackground(event) {
   const reader = new FileReader();
   reader.addEventListener('load', () => {
     localStorage.setItem(BG_KEY, reader.result);
-    els.bgLayer.style.backgroundImage = `url("${reader.result}")`;
+    applyBackground(reader.result);
     showStatus('背景已保存到本地');
   });
   reader.readAsDataURL(file);
 }
 
-function resetRemoteUrl() {
-  if (els.remoteUrl) els.remoteUrl.value = DEFAULT_REMOTE_URL;
-  localStorage.setItem(URL_KEY, DEFAULT_REMOTE_URL);
-  showStatus('已恢复默认仓库地址');
-}
-
 function restoreBackground() {
   const bg = localStorage.getItem(BG_KEY);
-  if (bg && els.bgLayer) els.bgLayer.style.backgroundImage = `url("${bg}")`;
+  if (bg) applyBackground(bg);
+}
+
+function applyBackground(value) {
+  if (!els.bgLayer) return;
+  els.bgLayer.style.backgroundImage = `url("${value}")`;
+  document.body.classList.add('has-custom-bg');
 }
 
 function getSemesterStart() {
@@ -914,6 +950,15 @@ function formatDate(date) {
   return `${date.getMonth() + 1}.${date.getDate()}`;
 }
 
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
 function toPositiveInt(value, fallback) {
   const number = Number.parseInt(value, 10);
   return Number.isFinite(number) && number > 0 ? number : fallback;
@@ -923,17 +968,19 @@ function clampWeek(value, max) {
   return Math.min(Math.max(1, value), Math.max(1, max));
 }
 
+function clampMinWeek(value) {
+  return Math.max(1, Number(value) || 1);
+}
+
 function clampNumber(value, min, max, fallback) {
   if (!Number.isFinite(value)) return fallback;
   return Math.min(Math.max(value, min), max);
 }
 
 function showStatus(message) {
-  if (els.loadBtn) els.loadBtn.textContent = message;
-  if (els.syncHint) els.syncHint.textContent = message;
+  if (els.todaySummary) els.todaySummary.textContent = message;
   window.clearTimeout(showStatus.timer);
   showStatus.timer = window.setTimeout(() => {
-    if (els.loadBtn) els.loadBtn.textContent = '读取并合并';
-    if (els.syncHint) els.syncHint.textContent = '启动时会自动读取默认 GitHub 课表；远程失败时继续使用本地缓存或内置 fallback。';
+    renderToday();
   }, 2200);
 }

@@ -29,12 +29,27 @@
     </header>
 
     <nav class="app-tabs" aria-label="页面">
-      <button class="active" data-page="schedulePage" type="button">课表</button>
+      <button class="active" data-page="todayPage" type="button">今日</button>
+      <button data-page="schedulePage" type="button">课表</button>
       <button data-page="editPage" type="button">编辑</button>
       <button data-page="settingsPage" type="button">设置</button>
     </nav>
 
-    <section class="page active" id="schedulePage">
+    <section class="page active" id="todayPage">
+      <section class="panel today-panel">
+        <div class="section-title">
+          <div>
+            <p>今日概览</p>
+            <h2 id="todaySummary">今天的课程将由脚本填充。</h2>
+          </div>
+        </div>
+        <div class="today-course-list" id="todayCourseList">
+          <div class="timetable-empty">今日课程将由脚本填充。</div>
+        </div>
+      </section>
+    </section>
+
+    <section class="page" id="schedulePage">
       <nav class="days sr-only" id="dayTabs" aria-label="选择星期"></nav>
       <section class="panel schedule-panel">
         <div class="section-title">
@@ -114,74 +129,103 @@
       <section class="panel settings-panel">
         <div class="section-title">
           <div>
-            <p>同步</p>
-            <h2>GitHub 与外观</h2>
+            <p>设置</p>
+            <h2>课表偏好</h2>
           </div>
         </div>
         <div class="settings-stack">
-          <label class="field">
-            <span>GitHub JSON 地址</span>
-            <input id="remoteUrl" type="url" placeholder="https://raw.githubusercontent.com/tanxue0118/kebiao/main/schedule.json">
-          </label>
-          <div class="settings-actions">
-            <button class="primary" id="loadBtn" type="button">读取并合并</button>
-            <button class="ghost" id="resetRemoteBtn" type="button">恢复默认仓库</button>
-          </div>
-          <label class="file-button">
-            <input id="bgInput" type="file" accept="image/*">
-            更换背景
-          </label>
-          <div class="settings-divider" aria-hidden="true"></div>
-          <div class="form-row">
-            <label class="field setting-check">
-              <input id="showWeekend" type="checkbox">
-              <span>显示周末</span>
-            </label>
-            <label class="field">
-              <span>开学日期</span>
-              <input id="semesterStartDate" type="date">
-            </label>
-          </div>
-          <div class="form-row">
-            <label class="field">
-              <span>本学期周数</span>
-              <input id="semesterTotalWeeks" type="number" min="1" max="30" step="1">
-            </label>
+          <div class="settings-group">
+            <div class="section-title">
+              <div>
+                <p>学期</p>
+                <h2>周次与假期</h2>
+              </div>
+            </div>
+            <div class="form-row">
+              <label class="field">
+                <span>开学日期</span>
+                <input id="semesterStartDate" type="date">
+              </label>
+              <label class="field">
+                <span>本学期周数</span>
+                <input id="semesterTotalWeeks" type="number" min="1" max="30" step="1">
+              </label>
+            </div>
             <label class="field">
               <span>假期时间段</span>
               <input id="holidayRanges" placeholder="2026-04-04~2026-04-06, 2026-05-01~2026-05-05">
             </label>
           </div>
-          <fieldset class="settings-fieldset" id="visibleFields">
-            <legend>显示字段</legend>
-            <label><input type="checkbox" name="visibleFields" data-visible-field value="name"> 课程名</label>
-            <label><input type="checkbox" name="visibleFields" data-visible-field value="teacher"> 老师</label>
-            <label><input type="checkbox" name="visibleFields" data-visible-field value="location"> 地点</label>
-            <label><input type="checkbox" name="visibleFields" data-visible-field value="time"> 时间</label>
-            <label><input type="checkbox" name="visibleFields" data-visible-field value="sections"> 节次</label>
-            <label><input type="checkbox" name="visibleFields" data-visible-field value="weeks"> 周次</label>
-          </fieldset>
-          <div class="form-row">
-            <label class="field">
-              <span>格子高度</span>
-              <input id="cellHeight" type="range" min="64" max="140" step="4">
+
+          <div class="settings-divider" aria-hidden="true"></div>
+
+          <div class="settings-group">
+            <div class="section-title">
+              <div>
+                <p>显示内容</p>
+                <h2>课表信息</h2>
+              </div>
+            </div>
+            <label class="field setting-check">
+              <input id="showWeekend" type="checkbox">
+              <span>显示周末</span>
             </label>
-            <label class="field">
-              <span>圆角</span>
-              <input id="cellRadius" type="range" min="4" max="28" step="1">
+            <fieldset class="settings-fieldset" id="visibleFields">
+              <legend>显示字段</legend>
+              <label><input type="checkbox" name="visibleFields" data-visible-field value="name"> 课程名</label>
+              <label><input type="checkbox" name="visibleFields" data-visible-field value="teacher"> 老师</label>
+              <label><input type="checkbox" name="visibleFields" data-visible-field value="location"> 地点</label>
+              <label><input type="checkbox" name="visibleFields" data-visible-field value="time"> 时间</label>
+              <label><input type="checkbox" name="visibleFields" data-visible-field value="sections"> 节次</label>
+              <label><input type="checkbox" name="visibleFields" data-visible-field value="weeks"> 周次</label>
+            </fieldset>
+          </div>
+
+          <div class="settings-divider" aria-hidden="true"></div>
+
+          <div class="settings-group">
+            <div class="section-title">
+              <div>
+                <p>个性化</p>
+                <h2>课程块样式</h2>
+              </div>
+            </div>
+            <div class="form-row">
+              <label class="field">
+                <span>格子高度</span>
+                <input id="cellHeight" type="range" min="64" max="140" step="4">
+              </label>
+              <label class="field">
+                <span>圆角</span>
+                <input id="cellRadius" type="range" min="4" max="28" step="1">
+              </label>
+            </div>
+            <div class="form-row">
+              <label class="field">
+                <span>间距</span>
+                <input id="cellGap" type="range" min="4" max="18" step="1">
+              </label>
+              <label class="field">
+                <span>透明度</span>
+                <input id="courseOpacity" type="range" min="0.2" max="1" step="0.05">
+              </label>
+            </div>
+          </div>
+
+          <div class="settings-divider" aria-hidden="true"></div>
+
+          <div class="settings-group">
+            <div class="section-title">
+              <div>
+                <p>背景</p>
+                <h2>页面图片</h2>
+              </div>
+            </div>
+            <label class="file-button">
+              <input id="bgInput" type="file" accept="image/*">
+              更换背景
             </label>
           </div>
-          <div class="form-row">
-            <label class="field">
-              <span>间距</span>
-              <input id="cellGap" type="range" min="4" max="18" step="1">
-            </label>
-            <label class="field">
-              <span>透明度</span>
-              <input id="courseOpacity" type="range" min="0.2" max="1" step="0.05">
-            </label>
-          </div>
-          <p class="hint" id="syncHint">读取 GitHub 后会缓存到本地；你编辑过的课程会优先保留。</p>
         </div>
       </section>
     </section>

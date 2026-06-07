@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#eef5ff">
+  <title>课程表</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="bg-layer" id="bgLayer"></div>
+  <main class="shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow" id="todayText">今天</p>
+        <h1>课程表</h1>
+      </div>
+      <div class="week-switcher">
+        <button class="icon-button" id="prevWeekBtn" type="button" aria-label="上一周">‹</button>
+        <div class="week-chip">
+          <span id="weekLabel">第 1 周</span>
+          <small id="dateRange">--</small>
+        </div>
+        <button class="icon-button" id="nextWeekBtn" type="button" aria-label="下一周">›</button>
+      </div>
+    </header>
+
+    <nav class="app-tabs" aria-label="页面">
+      <button class="active" data-page="schedulePage" type="button">课表</button>
+      <button data-page="editPage" type="button">编辑</button>
+      <button data-page="settingsPage" type="button">设置</button>
+    </nav>
+
+    <section class="page active" id="schedulePage">
+      <nav class="days" id="dayTabs" aria-label="选择星期"></nav>
+      <section class="panel schedule-panel">
+        <div class="section-title">
+          <div>
+            <p id="activeDayText">星期一</p>
+            <h2 id="courseCount">0 节课</h2>
+          </div>
+          <button class="primary" id="addBtn" type="button">添加课程</button>
+        </div>
+        <div class="course-list" id="courseList"></div>
+      </section>
+    </section>
+
+    <section class="page" id="editPage">
+      <section class="panel editor-panel">
+        <div class="section-title">
+          <div>
+            <p>本地保存</p>
+            <h2 id="editorTitle">新课程</h2>
+          </div>
+        </div>
+        <form id="courseForm" class="course-form">
+          <input type="hidden" id="courseId">
+          <label class="field">
+            <span>课程名</span>
+            <input id="courseName" required placeholder="高等数学">
+          </label>
+          <label class="field">
+            <span>老师</span>
+            <input id="teacher" required placeholder="王老师">
+          </label>
+          <label class="field">
+            <span>地点</span>
+            <input id="location" required placeholder="教学楼 A101">
+          </label>
+          <div class="form-row">
+            <label class="field">
+              <span>星期</span>
+              <select id="dayOfWeek"></select>
+            </label>
+            <label class="field">
+              <span>周次</span>
+              <input id="weeks" required placeholder="1-16 或 1,3,5">
+            </label>
+          </div>
+          <div class="form-row">
+            <label class="field">
+              <span>开始节</span>
+              <input id="startSection" type="number" min="1" max="12" required>
+            </label>
+            <label class="field">
+              <span>结束节</span>
+              <input id="endSection" type="number" min="1" max="12" required>
+            </label>
+          </div>
+          <div class="form-row">
+            <label class="field">
+              <span>开始时间</span>
+              <input id="startTime" type="time" required>
+            </label>
+            <label class="field">
+              <span>结束时间</span>
+              <input id="endTime" type="time" required>
+            </label>
+          </div>
+          <div class="form-actions">
+            <button class="primary" type="submit">保存</button>
+            <button class="danger" id="deleteBtn" type="button">删除</button>
+          </div>
+        </form>
+      </section>
+    </section>
+
+    <section class="page" id="settingsPage">
+      <section class="panel settings-panel">
+        <div class="section-title">
+          <div>
+            <p>同步</p>
+            <h2>GitHub 与外观</h2>
+          </div>
+        </div>
+        <div class="settings-stack">
+          <label class="field">
+            <span>GitHub JSON 地址</span>
+            <input id="remoteUrl" type="url" placeholder="https://raw.githubusercontent.com/tanxue0118/kebiao/main/schedule.json">
+          </label>
+          <div class="settings-actions">
+            <button class="primary" id="loadBtn" type="button">读取并合并</button>
+            <button class="ghost" id="resetRemoteBtn" type="button">恢复默认仓库</button>
+          </div>
+          <label class="file-button">
+            <input id="bgInput" type="file" accept="image/*">
+            更换背景
+          </label>
+          <p class="hint" id="syncHint">读取 GitHub 后会缓存到本地；你编辑过的课程会优先保留。</p>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <template id="courseTemplate">
+    <article class="course-card">
+      <div class="course-time"></div>
+      <div class="course-main">
+        <h3></h3>
+        <p class="course-meta"></p>
+        <p class="course-place"></p>
+      </div>
+      <button class="edit-button" type="button">编辑</button>
+    </article>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>

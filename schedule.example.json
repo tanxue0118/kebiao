@@ -1,0 +1,235 @@
+{
+  "courses": [
+    {
+      "name": "工程材料及成型技术",
+      "teacher": "侯文斌",
+      "position": "第二实验楼306",
+      "day": 1,
+      "startSection": 1,
+      "endSection": 2,
+      "weeks": [6, 8, 10, 12]
+    },
+    {
+      "name": "英语II",
+      "teacher": "秦雷",
+      "position": "3-206",
+      "day": 3,
+      "startSection": 1,
+      "endSection": 2,
+      "weeks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+    },
+    {
+      "name": "程序设计基础",
+      "teacher": "顾晓勤",
+      "position": "厚德楼A107",
+      "day": 5,
+      "startSection": 1,
+      "endSection": 2,
+      "weeks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+    },
+    {
+      "name": "英语II",
+      "teacher": "秦雷",
+      "position": "3-206",
+      "day": 1,
+      "startSection": 3,
+      "endSection": 4,
+      "weeks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+    },
+    {
+      "name": "体育1",
+      "teacher": "钟壮聪",
+      "position": "体育馆",
+      "day": 2,
+      "startSection": 3,
+      "endSection": 4,
+      "weeks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+    },
+    {
+      "name": "程序设计基础",
+      "teacher": "顾晓勤",
+      "position": "实验楼A209",
+      "day": 3,
+      "startSection": 3,
+      "endSection": 4,
+      "weeks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+    },
+    {
+      "name": "高等数学II",
+      "teacher": "张世华",
+      "position": "厚德楼A207",
+      "day": 4,
+      "startSection": 3,
+      "endSection": 4,
+      "weeks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+    },
+    {
+      "name": "形势与政策",
+      "teacher": "陈敏怡",
+      "position": "3-109",
+      "day": 5,
+      "startSection": 3,
+      "endSection": 4,
+      "weeks": [15, 16]
+    },
+    {
+      "name": "中国近现代史纲要",
+      "teacher": "陈敏怡",
+      "position": "3-109",
+      "day": 5,
+      "startSection": 3,
+      "endSection": 4,
+      "weeks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    },
+    {
+      "name": "线性代数",
+      "teacher": "路莉贞",
+      "position": "厚德楼A305",
+      "day": 1,
+      "startSection": 5,
+      "endSection": 6,
+      "weeks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+    },
+    {
+      "name": "高等数学II",
+      "teacher": "张世华",
+      "position": "厚德楼A208",
+      "day": 3,
+      "startSection": 5,
+      "endSection": 6,
+      "weeks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+    },
+    {
+      "name": "心理学与生活",
+      "teacher": "高慧",
+      "position": "3-101",
+      "day": 5,
+      "startSection": 5,
+      "endSection": 6,
+      "weeks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+    },
+    {
+      "name": "工程材料及成型技术",
+      "teacher": "侯文斌",
+      "position": "厚德楼A104",
+      "day": 1,
+      "startSection": 7,
+      "endSection": 8,
+      "weeks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+    },
+    {
+      "name": "形势与政策",
+      "teacher": "陈敏怡",
+      "position": "3-109",
+      "day": 2,
+      "startSection": 7,
+      "endSection": 8,
+      "weeks": [15, 16]
+    },
+    {
+      "name": "中国近现代史纲要",
+      "teacher": "陈敏怡",
+      "position": "3-109",
+      "day": 2,
+      "startSection": 7,
+      "endSection": 8,
+      "weeks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    },
+    {
+      "name": "机械制图II",
+      "teacher": "魏胜君",
+      "position": "厚德楼A110",
+      "day": 3,
+      "startSection": 7,
+      "endSection": 8,
+      "weeks": [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+    },
+    {
+      "name": "大学生心理健康教育",
+      "teacher": "黄思敏",
+      "position": "厚德楼A201",
+      "day": 4,
+      "startSection": 7,
+      "endSection": 8,
+      "weeks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+    },
+    {
+      "name": "机械制图II",
+      "teacher": "魏胜君",
+      "position": "实验楼A202",
+      "day": 3,
+      "startSection": 9,
+      "endSection": 10,
+      "weeks": [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+    }
+  ],
+  "timeSlots": [
+    {
+      "number": 1,
+      "startTime": "08:00",
+      "endTime": "08:45"
+    },
+    {
+      "number": 2,
+      "startTime": "08:55",
+      "endTime": "09:40"
+    },
+    {
+      "number": 3,
+      "startTime": "10:00",
+      "endTime": "10:45"
+    },
+    {
+      "number": 4,
+      "startTime": "10:55",
+      "endTime": "11:40"
+    },
+    {
+      "number": 5,
+      "startTime": "14:30",
+      "endTime": "15:15"
+    },
+    {
+      "number": 6,
+      "startTime": "15:25",
+      "endTime": "16:10"
+    },
+    {
+      "number": 7,
+      "startTime": "16:20",
+      "endTime": "17:05"
+    },
+    {
+      "number": 8,
+      "startTime": "17:15",
+      "endTime": "18:00"
+    },
+    {
+      "number": 9,
+      "startTime": "18:40",
+      "endTime": "19:25"
+    },
+    {
+      "number": 10,
+      "startTime": "19:35",
+      "endTime": "20:20"
+    },
+    {
+      "number": 11,
+      "startTime": "20:30",
+      "endTime": "21:15"
+    },
+    {
+      "number": 12,
+      "startTime": "21:25",
+      "endTime": "22:10"
+    }
+  ],
+  "config": {
+    "semesterStartDate": "2025-09-01",
+    "semesterTotalWeeks": 16,
+    "defaultClassDuration": 45,
+    "defaultBreakDuration": 10,
+    "firstDayOfWeek": 1
+  }
+}

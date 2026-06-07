@@ -18,7 +18,40 @@ const DAILY_POEMS = [
   '博观而约取，厚积而薄发。',
   '及时当勉励，岁月不待人。',
   '不经一番寒彻骨，怎得梅花扑鼻香。',
-  '千磨万击还坚劲，任尔东西南北风。'
+  '千磨万击还坚劲，任尔东西南北风。',
+  '读书不觉已春深，一寸光阴一寸金。',
+  '问渠那得清如许，为有源头活水来。',
+  '盛年不重来，一日难再晨。',
+  '黑发不知勤学早，白首方悔读书迟。',
+  '三更灯火五更鸡，正是男儿读书时。',
+  '大鹏一日同风起，扶摇直上九万里。',
+  '苔花如米小，也学牡丹开。',
+  '莫愁前路无知己，天下谁人不识君。',
+  '山重水复疑无路，柳暗花明又一村。',
+  '沉舟侧畔千帆过，病树前头万木春。',
+  '天生我材必有用，千金散尽还复来。',
+  '千淘万漉虽辛苦，吹尽狂沙始到金。',
+  '粗缯大布裹生涯，腹有诗书气自华。',
+  '江山代有才人出，各领风骚数百年。',
+  '欲买桂花同载酒，终不似，少年游。',
+  '且将新火试新茶，诗酒趁年华。',
+  '清水出芙蓉，天然去雕饰。',
+  '少年易老学难成，一寸光阴不可轻。',
+  '立志欲坚不欲锐，成功在久不在速。',
+  '功名多向穷中立，祸患常从巧处生。',
+  '看似寻常最奇崛，成如容易却艰辛。',
+  '纸屏石枕竹方床，手倦抛书午梦长。',
+  '一蓑烟雨任平生。',
+  '行到水穷处，坐看云起时。',
+  '星垂平野阔，月涌大江流。',
+  '潮平两岸阔，风正一帆悬。',
+  '疏影横斜水清浅，暗香浮动月黄昏。',
+  '等闲识得东风面，万紫千红总是春。',
+  '小荷才露尖尖角，早有蜻蜓立上头。',
+  '晴空一鹤排云上，便引诗情到碧霄。',
+  '溪云初起日沉阁，山雨欲来风满楼。',
+  '落红不是无情物，化作春泥更护花。',
+  '采得百花成蜜后，为谁辛苦为谁甜。'
 ];
 const DEFAULT_TIME_SLOTS = [
   { number: 1, startTime: '08:00', endTime: '08:45' },
@@ -44,7 +77,8 @@ const DEFAULT_SETTINGS = {
   cellHeight: 72,
   cellRadius: 8,
   cellGap: 6,
-  courseOpacity: 0.92
+  courseOpacity: 0.92,
+  cardOpacity: 0.48
 };
 
 const fallbackSchedule = {
@@ -91,6 +125,7 @@ const els = {
   dateRange: document.getElementById('dateRange'),
   prevWeekBtn: document.getElementById('prevWeekBtn'),
   nextWeekBtn: document.getElementById('nextWeekBtn'),
+  todayJumpBtn: document.getElementById('todayJumpBtn'),
   pageTabs: document.querySelectorAll('[data-page]'),
   bgInput: document.getElementById('bgInput'),
   bgLayer: document.getElementById('bgLayer'),
@@ -126,6 +161,7 @@ function init() {
   restoreBackground();
   ensureSettingsControls();
   bindSettingsControls();
+  applyAppearanceSettings();
   renderDayTabs();
   renderDailyPoem();
   renderWeek();
@@ -135,6 +171,7 @@ function init() {
 
   els.prevWeekBtn?.addEventListener('click', () => changeWeek(-1));
   els.nextWeekBtn?.addEventListener('click', () => changeWeek(1));
+  els.todayJumpBtn?.addEventListener('click', jumpToToday);
   els.pageTabs.forEach((tab) => tab.addEventListener('click', () => showPage(tab.dataset.page)));
   els.bgInput?.addEventListener('change', changeBackground);
   els.addBtn?.addEventListener('click', () => resetForm());
@@ -178,6 +215,7 @@ function loadSettings(schedule) {
   normalized.cellRadius = toPositiveInt(normalized.cellRadius, DEFAULT_SETTINGS.cellRadius);
   normalized.cellGap = toPositiveInt(normalized.cellGap, DEFAULT_SETTINGS.cellGap);
   normalized.courseOpacity = clampNumber(Number(normalized.courseOpacity), 0.2, 1, DEFAULT_SETTINGS.courseOpacity);
+  normalized.cardOpacity = clampNumber(Number(normalized.cardOpacity), 0.25, 1, DEFAULT_SETTINGS.cardOpacity);
   return normalized;
 }
 
@@ -412,6 +450,7 @@ function renderTimetable() {
   if (els.courseCount) els.courseCount.textContent = isHoliday ? `第 ${activeWeek} 周` : (courses.length ? `${courses.length} 门课` : '本周无课');
   if (!els.courseList) return;
 
+  applyAppearanceSettings();
   els.courseList.innerHTML = '';
   els.courseList.className = 'timetable';
   els.courseList.style.setProperty('--cell-height', `${settings.cellHeight}px`);
@@ -627,6 +666,7 @@ function ensureSettingsControls() {
     <div class="form-row">
       <label class="field"><span>间距</span><input id="cellGap" type="number" min="0" max="20"></label>
       <label class="field"><span>课程透明度</span><input id="courseOpacity" type="number" min="0.2" max="1" step="0.05"></label>
+      <label class="field"><span>卡片透明度</span><input id="cardOpacity" type="number" min="0.25" max="1" step="0.05"></label>
     </div>
   `;
   stack.appendChild(panel);
@@ -642,7 +682,8 @@ function bindSettingsControls() {
     cellHeight: getByIds('cellHeight', 'settingCellHeight'),
     cellRadius: getByIds('cellRadius', 'settingCellRadius'),
     cellGap: getByIds('cellGap', 'settingCellGap'),
-    courseOpacity: getByIds('courseOpacity', 'settingCourseOpacity')
+    courseOpacity: getByIds('courseOpacity', 'settingCourseOpacity'),
+    cardOpacity: getByIds('cardOpacity', 'settingCardOpacity')
   };
 
   writeSettingsControls();
@@ -666,6 +707,7 @@ function writeSettingsControls() {
   if (els.settings.cellRadius) els.settings.cellRadius.value = settings.cellRadius;
   if (els.settings.cellGap) els.settings.cellGap.value = settings.cellGap;
   if (els.settings.courseOpacity) els.settings.courseOpacity.value = settings.courseOpacity;
+  if (els.settings.cardOpacity) els.settings.cardOpacity.value = settings.cardOpacity;
   getVisibleFieldInputs().forEach((input) => {
     input.checked = settings.visibleFields.includes(input.value);
   });
@@ -682,7 +724,8 @@ function readSettingsControls() {
     cellHeight: toPositiveInt(els.settings.cellHeight?.value, DEFAULT_SETTINGS.cellHeight),
     cellRadius: toPositiveInt(els.settings.cellRadius?.value, DEFAULT_SETTINGS.cellRadius),
     cellGap: toPositiveInt(els.settings.cellGap?.value, DEFAULT_SETTINGS.cellGap),
-    courseOpacity: clampNumber(Number(els.settings.courseOpacity?.value), 0.2, 1, DEFAULT_SETTINGS.courseOpacity)
+    courseOpacity: clampNumber(Number(els.settings.courseOpacity?.value), 0.2, 1, DEFAULT_SETTINGS.courseOpacity),
+    cardOpacity: clampNumber(Number(els.settings.cardOpacity?.value), 0.25, 1, DEFAULT_SETTINGS.cardOpacity)
   };
   if (!settings.visibleFields.length) settings.visibleFields = ['name'];
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
@@ -692,6 +735,10 @@ function readSettingsControls() {
   renderTimetable();
   renderToday();
   resetForm(false);
+}
+
+function applyAppearanceSettings() {
+  document.documentElement.style.setProperty('--card-opacity', String(settings.cardOpacity));
 }
 
 function getVisibleFieldInputs() {
@@ -918,6 +965,15 @@ function changeWeek(delta) {
   renderTimetable();
   renderToday();
   resetForm(false);
+}
+
+function jumpToToday() {
+  activeWeek = clampMinWeek(getCurrentWeek(getSemesterStart()));
+  renderWeek();
+  renderTimetable();
+  renderToday();
+  resetForm(false);
+  showPage(document.getElementById('todayPage') ? 'todayPage' : 'schedulePage');
 }
 
 function changeBackground(event) {

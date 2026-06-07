@@ -27,6 +27,7 @@
   --cell-radius: 8px;
   --cell-gap: 6px;
   --course-opacity: .92;
+  --card-opacity: .48;
   --time-rail-width: 78px;
   --radius-sm: 8px;
   --radius-md: 14px;
@@ -372,6 +373,11 @@ label {
   padding: 0;
   font-size: 28px;
   line-height: 1;
+}
+
+.today-jump {
+  min-width: 58px;
+  padding-inline: 14px;
 }
 
 .file-button {
@@ -1278,8 +1284,8 @@ h3,
 .app-tabs {
   border-color: rgba(255, 255, 255, .56);
   background:
-    radial-gradient(circle at 16% 0%, rgba(255, 255, 255, .70), transparent 42%),
-    linear-gradient(145deg, rgba(255, 255, 255, .48), rgba(255, 255, 255, .18));
+    radial-gradient(circle at 16% 0%, rgba(255, 255, 255, calc(var(--card-opacity) + .22)), transparent 42%),
+    linear-gradient(145deg, rgba(255, 255, 255, var(--card-opacity)), rgba(255, 255, 255, calc(var(--card-opacity) * .38)));
   box-shadow:
     0 18px 56px rgba(40, 67, 86, .14),
     inset 0 1px 0 rgba(255, 255, 255, .62);

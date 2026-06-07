@@ -80,7 +80,8 @@ const DEFAULT_SETTINGS = {
   cellRadius: 8,
   cellGap: 6,
   courseOpacity: 0.92,
-  cardOpacity: 0.42
+  cardOpacity: 0.42,
+  blurAmount: 28
 };
 
 const fallbackSchedule = {
@@ -218,6 +219,7 @@ function loadSettings(schedule) {
   normalized.cellGap = toPositiveInt(normalized.cellGap, DEFAULT_SETTINGS.cellGap);
   normalized.courseOpacity = clampNumber(Number(normalized.courseOpacity), 0.2, 1, DEFAULT_SETTINGS.courseOpacity);
   normalized.cardOpacity = clampNumber(Number(normalized.cardOpacity), 0.06, 1, DEFAULT_SETTINGS.cardOpacity);
+  normalized.blurAmount = clampNumber(Number(normalized.blurAmount), 0, 40, DEFAULT_SETTINGS.blurAmount);
   return normalized;
 }
 
@@ -710,6 +712,7 @@ function ensureSettingsControls() {
       <label class="field"><span>间距</span><input id="cellGap" type="number" min="0" max="20"></label>
       <label class="field"><span>课程透明度</span><input id="courseOpacity" type="number" min="0.2" max="1" step="0.05"></label>
       <label class="field"><span>卡片透明度</span><input id="cardOpacity" type="number" min="0.06" max="1" step="0.04"></label>
+      <label class="field"><span>模糊强度</span><input id="blurAmount" type="number" min="0" max="40" step="1"></label>
     </div>
   `;
   stack.appendChild(panel);
@@ -726,7 +729,8 @@ function bindSettingsControls() {
     cellRadius: getByIds('cellRadius', 'settingCellRadius'),
     cellGap: getByIds('cellGap', 'settingCellGap'),
     courseOpacity: getByIds('courseOpacity', 'settingCourseOpacity'),
-    cardOpacity: getByIds('cardOpacity', 'settingCardOpacity')
+    cardOpacity: getByIds('cardOpacity', 'settingCardOpacity'),
+    blurAmount: getByIds('blurAmount', 'settingBlurAmount')
   };
 
   writeSettingsControls();
@@ -751,6 +755,7 @@ function writeSettingsControls() {
   if (els.settings.cellGap) els.settings.cellGap.value = settings.cellGap;
   if (els.settings.courseOpacity) els.settings.courseOpacity.value = settings.courseOpacity;
   if (els.settings.cardOpacity) els.settings.cardOpacity.value = settings.cardOpacity;
+  if (els.settings.blurAmount) els.settings.blurAmount.value = settings.blurAmount;
   getVisibleFieldInputs().forEach((input) => {
     input.checked = settings.visibleFields.includes(input.value);
   });
@@ -768,7 +773,8 @@ function readSettingsControls() {
     cellRadius: toPositiveInt(els.settings.cellRadius?.value, DEFAULT_SETTINGS.cellRadius),
     cellGap: toPositiveInt(els.settings.cellGap?.value, DEFAULT_SETTINGS.cellGap),
     courseOpacity: clampNumber(Number(els.settings.courseOpacity?.value), 0.2, 1, DEFAULT_SETTINGS.courseOpacity),
-    cardOpacity: clampNumber(Number(els.settings.cardOpacity?.value), 0.06, 1, DEFAULT_SETTINGS.cardOpacity)
+    cardOpacity: clampNumber(Number(els.settings.cardOpacity?.value), 0.06, 1, DEFAULT_SETTINGS.cardOpacity),
+    blurAmount: clampNumber(Number(els.settings.blurAmount?.value), 0, 40, DEFAULT_SETTINGS.blurAmount)
   };
   if (!settings.visibleFields.length) settings.visibleFields = ['name'];
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
@@ -782,6 +788,7 @@ function readSettingsControls() {
 
 function applyAppearanceSettings() {
   document.documentElement.style.setProperty('--card-opacity', String(settings.cardOpacity));
+  document.documentElement.style.setProperty('--blur', `${settings.blurAmount}px`);
 }
 
 function getVisibleFieldInputs() {

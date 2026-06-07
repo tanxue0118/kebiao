@@ -1442,7 +1442,6 @@ button.primary,
   --blue: #1e78c8;
   --teal: #11877f;
   --amber: #b06d1d;
-  --blur: 28px;
   --radius-lg: 24px;
   --radius-xl: 34px;
 }
@@ -1554,8 +1553,8 @@ header::before,
   box-shadow:
     0 14px 44px rgba(38, 67, 83, .14),
     inset 0 1px 0 rgba(255, 255, 255, .70);
-  backdrop-filter: blur(30px) saturate(190%);
-  -webkit-backdrop-filter: blur(30px) saturate(190%);
+  backdrop-filter: blur(var(--blur)) saturate(190%);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(190%);
 }
 
 .app-tabs button {

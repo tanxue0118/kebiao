@@ -22,12 +22,14 @@
         </div>
       </div>
       <div class="week-switcher">
-        <button class="icon-button" id="prevWeekBtn" type="button" aria-label="上一周">‹</button>
-        <div class="week-chip">
-          <span id="weekLabel">第 1 周</span>
-          <small id="dateRange">--</small>
+        <div class="week-stepper" aria-label="切换周次">
+          <button class="icon-button" id="prevWeekBtn" type="button" aria-label="上一周">‹</button>
+          <div class="week-chip">
+            <span id="weekLabel">第 1 周</span>
+            <small id="dateRange">--</small>
+          </div>
+          <button class="icon-button" id="nextWeekBtn" type="button" aria-label="下一周">›</button>
         </div>
-        <button class="icon-button" id="nextWeekBtn" type="button" aria-label="下一周">›</button>
         <button class="today-jump" id="todayJumpBtn" type="button">今天</button>
       </div>
     </header>
@@ -136,8 +138,23 @@
             <h2>课表设置</h2>
           </div>
         </div>
-        <div class="settings-stack">
-          <div class="settings-group">
+        <nav class="settings-home" aria-label="设置分类">
+          <button type="button" data-settings-section-target="basic">
+            <strong>基础设置</strong>
+            <span>学期、周次、节次时间</span>
+          </button>
+          <button type="button" data-settings-section-target="view">
+            <strong>外观设置</strong>
+            <span>显示内容、个性化、背景</span>
+          </button>
+          <button type="button" data-settings-section-target="data">
+            <strong>数据管理</strong>
+            <span>清空、导入、导出课表</span>
+          </button>
+        </nav>
+        <div class="settings-stack" hidden>
+          <div class="settings-group" data-settings-section="basic" hidden>
+            <button class="settings-back" type="button" data-settings-back>‹ 返回设置</button>
             <div class="section-title">
               <div>
                 <p>学期</p>
@@ -162,7 +179,8 @@
 
           <div class="settings-divider" aria-hidden="true"></div>
 
-          <div class="settings-group">
+          <div class="settings-group" data-settings-section="view" hidden>
+            <button class="settings-back" type="button" data-settings-back>‹ 返回设置</button>
             <div class="section-title">
               <div>
                 <p>显示内容</p>
@@ -186,7 +204,7 @@
 
           <div class="settings-divider" aria-hidden="true"></div>
 
-          <div class="settings-group">
+          <div class="settings-group" data-settings-section="view" hidden>
             <div class="section-title">
               <div>
                 <p>个性化</p>
@@ -221,7 +239,7 @@
 
           <div class="settings-divider" aria-hidden="true"></div>
 
-          <div class="settings-group">
+          <div class="settings-group" data-settings-section="basic" hidden>
             <div class="section-title">
               <div>
                 <p>课程时间</p>
@@ -239,7 +257,7 @@
 
           <div class="settings-divider" aria-hidden="true"></div>
 
-          <div class="settings-group">
+          <div class="settings-group" data-settings-section="view" hidden>
             <div class="section-title">
               <div>
                 <p>背景</p>
@@ -254,7 +272,8 @@
 
           <div class="settings-divider" aria-hidden="true"></div>
 
-          <div class="settings-group">
+          <div class="settings-group" data-settings-section="data" hidden>
+            <button class="settings-back" type="button" data-settings-back>‹ 返回设置</button>
             <div class="section-title">
               <div>
                 <p>本地保存</p>
@@ -262,12 +281,12 @@
               </div>
             </div>
             <div class="data-actions">
-              <button class="danger" id="clearScheduleBtn" type="button">清空课表</button>
-              <label class="file-button data-file-button">
+              <button class="danger data-control" id="clearScheduleBtn" type="button">清空课表</button>
+              <label class="file-button data-file-button data-control">
                 <input id="importScheduleInput" type="file" accept="application/json,.json">
                 导入 JSON
               </label>
-              <button class="primary" id="exportScheduleBtn" type="button">导出 JSON</button>
+              <button class="primary data-control" id="exportScheduleBtn" type="button">导出 JSON</button>
             </div>
           </div>
         </div>

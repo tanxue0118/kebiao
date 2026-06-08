@@ -176,6 +176,7 @@ function init() {
   restoreBackground();
   ensureSettingsControls();
   bindSettingsControls();
+  bindSettingsSections();
   applyAppearanceSettings();
   renderDayTabs();
   renderWeek();
@@ -622,7 +623,7 @@ function renderToday() {
 
   todayCourses.forEach((course) => {
     const card = document.createElement('article');
-    card.className = 'today-course';
+    card.className = `today-course${isCourseFinishedToday(course, today) ? ' is-finished' : ''}`;
     card.innerHTML = `
       <div class="today-time">${escapeHtml(course.startTime || '')}${course.endTime ? ` - ${escapeHtml(course.endTime)}` : ''}</div>
       <div class="today-main">
@@ -635,6 +636,13 @@ function renderToday() {
     fragment.appendChild(card);
   });
   els.todayCourseList.replaceChildren(fragment);
+}
+
+function isCourseFinishedToday(course, date = new Date()) {
+  const end = timeToMinutes(course.endTime);
+  if (!Number.isFinite(end)) return false;
+  const now = date.getHours() * 60 + date.getMinutes();
+  return end < now;
 }
 
 function createGridHeader(text, column, row, subtext = '') {
@@ -806,6 +814,39 @@ function bindSettingsControls() {
     control.addEventListener('input', readSettingsControls);
     control.addEventListener('change', readSettingsControls);
   });
+}
+
+function bindSettingsSections() {
+  const tabs = [...document.querySelectorAll('[data-settings-section-target]')];
+  const groups = [...document.querySelectorAll('[data-settings-section]')];
+  const stack = document.querySelector('#settingsPage .settings-stack');
+  const home = document.querySelector('#settingsPage .settings-home');
+  const backs = [...document.querySelectorAll('[data-settings-back]')];
+  if (!tabs.length || !groups.length) return;
+
+  const activate = (target) => {
+    if (home) home.hidden = true;
+    if (stack) stack.hidden = false;
+    tabs.forEach((tab) => tab.classList.toggle('active', tab.dataset.settingsSectionTarget === target));
+    groups.forEach((group) => {
+      group.hidden = group.dataset.settingsSection !== target;
+    });
+  };
+
+  const backHome = () => {
+    if (home) home.hidden = false;
+    if (stack) stack.hidden = true;
+    tabs.forEach((tab) => tab.classList.remove('active'));
+    groups.forEach((group) => {
+      group.hidden = true;
+    });
+  };
+
+  tabs.forEach((tab) => {
+    tab.addEventListener('click', () => activate(tab.dataset.settingsSectionTarget));
+  });
+  backs.forEach((button) => button.addEventListener('click', backHome));
+  backHome();
 }
 
 function scheduleRender(parts) {

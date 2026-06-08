@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="14dp"
+    android:background="@drawable/widget_bg">
+
+    <TextView
+        android:id="@+id/week_widget_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/week_widget_title"
+        android:textColor="#111111"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        android:maxLines="1" />
+
+    <TextView
+        android:id="@+id/week_widget_subtitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:text="@string/app_name"
+        android:textColor="#333333"
+        android:textSize="11sp"
+        android:maxLines="1" />
+
+    <TextView
+        android:id="@+id/week_day_1"
+        style="@style/WeekWidgetDayText" />
+
+    <TextView
+        android:id="@+id/week_day_2"
+        style="@style/WeekWidgetDayText" />
+
+    <TextView
+        android:id="@+id/week_day_3"
+        style="@style/WeekWidgetDayText" />
+
+    <TextView
+        android:id="@+id/week_day_4"
+        style="@style/WeekWidgetDayText" />
+
+    <TextView
+        android:id="@+id/week_day_5"
+        style="@style/WeekWidgetDayText" />
+
+    <TextView
+        android:id="@+id/week_day_6"
+        style="@style/WeekWidgetDayText" />
+
+    <TextView
+        android:id="@+id/week_day_7"
+        style="@style/WeekWidgetDayText" />
+</LinearLayout>

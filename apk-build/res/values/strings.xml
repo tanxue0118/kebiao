@@ -2,4 +2,5 @@
 <resources>
     <string name="app_name">&#x8BFE;&#x7A0B;&#x8868;</string>
     <string name="widget_title">&#x4ECA;&#x65E5;&#x8BFE;&#x7A0B;</string>
+    <string name="week_widget_title">&#x672C;&#x5468;&#x8BFE;&#x8868;</string>
 </resources>

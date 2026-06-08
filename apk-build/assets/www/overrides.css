@@ -326,3 +326,464 @@ body::after {
 @media (max-width: 640px) {
   .hero-titleline { flex-wrap: nowrap !important; }
 }
+
+/* Product surface pass: keep settings alive while reducing heavy glass. */
+:root {
+  --app-panel-alpha: calc(var(--card-opacity, .42) * .72);
+  --app-panel-border-alpha: calc(var(--card-opacity, .42) * .18);
+  --app-panel-shadow-alpha: calc(var(--card-opacity, .42) * .08);
+  --app-control-alpha: calc(var(--card-opacity, .42) * .72);
+  --app-soft-alpha: calc(var(--card-opacity, .42) * .42);
+  --app-line: rgba(17, 17, 17, var(--app-panel-border-alpha));
+  --app-shadow: 0 10px 26px rgba(17, 17, 17, var(--app-panel-shadow-alpha));
+}
+
+body {
+  color: #111 !important;
+  background:
+    linear-gradient(180deg, rgba(248, 250, 251, calc(var(--card-opacity, .42) * .34)), rgba(241, 245, 246, calc(var(--card-opacity, .42) * .28))) !important;
+}
+
+.bg-layer {
+  opacity: calc(.72 - var(--card-opacity, .42) * .18) !important;
+  filter: saturate(.9) contrast(.98) brightness(1.02) !important;
+}
+
+.hero,
+.panel,
+#todayPage .today-panel,
+#schedulePage .schedule-panel,
+#editPage .editor-panel,
+#settingsPage .settings-panel,
+#settingsPage .settings-group {
+  border: 1px solid var(--app-line) !important;
+  background: rgba(255, 255, 255, var(--app-panel-alpha)) !important;
+  box-shadow: var(--app-shadow) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.hero {
+  grid-template-columns: minmax(0, 1fr) max-content !important;
+  min-height: 0 !important;
+  padding: 8px 12px !important;
+  border-radius: 14px !important;
+}
+
+.hero h1 {
+  letter-spacing: 0 !important;
+  text-shadow: none !important;
+}
+
+.hero .eyebrow,
+.section-title p,
+#activeDayText {
+  color: #111 !important;
+  opacity: .78 !important;
+}
+
+.hero .week-switcher {
+  gap: 0 !important;
+  justify-content: flex-end !important;
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 !important;
+}
+
+.hero .week-stepper {
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 3px !important;
+  border: 1px solid rgba(17, 17, 17, calc(var(--card-opacity, .42) * .14)) !important;
+  border-radius: 999px !important;
+  background: rgba(255, 255, 255, calc(var(--card-opacity, .42) * .42)) !important;
+}
+
+.hero .week-chip,
+.hero .icon-button,
+.hero .today-jump,
+button,
+.file-button,
+input,
+select,
+textarea,
+.settings-fieldset {
+  border-color: rgba(17, 17, 17, calc(.08 + var(--card-opacity, .42) * .12)) !important;
+  background: rgba(255, 255, 255, var(--app-control-alpha)) !important;
+  color: #111 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.hero .week-stepper .icon-button,
+.hero .week-stepper .week-chip {
+  border-color: transparent !important;
+  background: transparent !important;
+}
+
+.hero .today-jump {
+  margin-left: 8px !important;
+  border-radius: 999px !important;
+}
+
+.hero .week-stepper .icon-button:hover,
+.hero .week-switcher .today-jump:hover {
+  background: rgba(17, 17, 17, .06) !important;
+}
+
+.hero .week-stepper .week-chip {
+  margin-inline: 2px !important;
+}
+
+button.primary,
+.app-tabs button.active {
+  background: #111 !important;
+  color: #fff !important;
+}
+
+.settings-stack {
+  gap: 10px !important;
+}
+
+.settings-panel > .settings-stack {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  align-items: start !important;
+}
+
+.settings-section-tabs {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+  margin-bottom: 12px !important;
+}
+
+.settings-section-tabs button {
+  min-height: 38px !important;
+  border-radius: 12px !important;
+}
+
+.settings-section-tabs button.active {
+  background: #111 !important;
+  color: #fff !important;
+}
+
+.settings-group[hidden] {
+  display: none !important;
+}
+
+.settings-group {
+  padding: 14px !important;
+  border-radius: 14px !important;
+}
+
+.settings-group .section-title {
+  margin-bottom: 10px !important;
+}
+
+.settings-group .section-title h2 {
+  font-size: 17px !important;
+}
+
+.settings-group .form-row {
+  gap: 10px !important;
+}
+
+.field {
+  gap: 6px !important;
+}
+
+.field span,
+.settings-fieldset legend {
+  color: #111 !important;
+  opacity: .74 !important;
+}
+
+.schedule-panel,
+.today-panel {
+  padding: 14px !important;
+}
+
+.settings-divider {
+  display: none !important;
+}
+
+.data-actions {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+  align-items: stretch !important;
+}
+
+.data-actions > .data-control,
+.data-actions button,
+.data-actions .file-button {
+  width: 100% !important;
+  min-height: 42px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 12px !important;
+  padding: 0 12px !important;
+  font-size: 14px !important;
+  font-weight: 800 !important;
+  color: #111 !important;
+  background: rgba(255, 255, 255, var(--app-control-alpha)) !important;
+}
+
+.data-actions > .data-file-button,
+.data-actions > .data-file-button:hover,
+.data-actions > .data-file-button:focus,
+.data-actions > .data-file-button:focus-within,
+.data-actions > .data-file-button:active {
+  position: relative !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(17, 17, 17, calc(var(--card-opacity, .42) * .18)) !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+}
+
+.data-actions > .data-file-button::before,
+.data-actions > .data-file-button::after,
+#settingsPage .settings-stack .data-actions > .data-file-button::before,
+#settingsPage .settings-stack .data-actions > .data-file-button::after {
+  content: none !important;
+  display: none !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.data-actions > .data-file-button > input[type="file"],
+.data-actions #importScheduleInput {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  opacity: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  cursor: pointer !important;
+}
+
+#todayPage .today-course {
+  border: 0 !important;
+  border-radius: 10px !important;
+  background: rgba(255, 255, 255, var(--app-soft-alpha)) !important;
+  padding: 10px 8px !important;
+}
+
+#courseList .timetable-grid {
+  border-color: rgba(17, 17, 17, calc(.08 + var(--card-opacity, .42) * .10)) !important;
+  background: rgba(255, 255, 255, calc(var(--card-opacity, .42) * .28)) !important;
+}
+
+#courseList .timetable-course {
+  border: 1px solid rgba(17, 17, 17, .08) !important;
+  box-shadow: 0 6px 14px rgba(17, 17, 17, .08) !important;
+}
+
+.app-tabs {
+  border-color: rgba(17, 17, 17, calc(var(--card-opacity, .42) * .18)) !important;
+  background: rgba(255, 255, 255, calc(var(--card-opacity, .42) * .82)) !important;
+  backdrop-filter: blur(10px) saturate(112%) !important;
+  -webkit-backdrop-filter: blur(10px) saturate(112%) !important;
+}
+
+@media (max-width: 640px) {
+  .shell {
+    width: min(100% - 16px, 1120px) !important;
+    padding-top: max(10px, env(safe-area-inset-top)) !important;
+    padding-bottom: calc(82px + env(safe-area-inset-bottom)) !important;
+  }
+
+  .hero {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  .hero .week-switcher {
+    justify-content: flex-start !important;
+  }
+
+  .hero .week-chip {
+    flex: 0 0 auto !important;
+    min-width: 88px !important;
+  }
+
+  .settings-group {
+    padding: 12px !important;
+  }
+
+  .settings-panel > .settings-stack {
+    grid-template-columns: 1fr !important;
+  }
+
+  .settings-section-tabs,
+  .data-actions {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* iOS-style low-alpha finish: zero card opacity means zero white veil. */
+body,
+body.has-custom-bg {
+  background: transparent !important;
+}
+
+body::before,
+body::after,
+body.has-custom-bg::before,
+body.has-custom-bg::after {
+  background: transparent !important;
+  opacity: 0 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.hero,
+.panel,
+#todayPage .today-panel,
+#schedulePage .schedule-panel,
+#editPage .editor-panel,
+#settingsPage .settings-panel,
+#settingsPage .settings-group {
+  border-color: rgba(255, 255, 255, calc(var(--card-opacity, .42) * .28)) !important;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(255, 255, 255, calc(var(--card-opacity, .42) * .12)), transparent 38%),
+    rgba(255, 255, 255, calc(var(--card-opacity, .42) * .18)) !important;
+  box-shadow:
+    0 10px 24px rgba(17, 17, 17, calc(var(--card-opacity, .42) * .06)),
+    inset 0 1px 0 rgba(255, 255, 255, calc(var(--card-opacity, .42) * .22)) !important;
+  backdrop-filter: blur(calc(var(--card-opacity, .42) * 4px)) saturate(112%) brightness(1.02) !important;
+  -webkit-backdrop-filter: blur(calc(var(--card-opacity, .42) * 4px)) saturate(112%) brightness(1.02) !important;
+}
+
+.hero .week-stepper,
+.hero .today-jump,
+button,
+.file-button,
+input,
+select,
+textarea,
+.settings-fieldset,
+.data-actions > .data-control,
+.data-actions .file-button {
+  border-color: rgba(17, 17, 17, calc(var(--card-opacity, .42) * .16)) !important;
+  background: rgba(255, 255, 255, calc(var(--card-opacity, .42) * .22)) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.settings-home {
+  display: grid !important;
+  gap: 10px !important;
+}
+
+.settings-home[hidden],
+.settings-stack[hidden] {
+  display: none !important;
+}
+
+.settings-home button {
+  min-height: 74px !important;
+  display: grid !important;
+  grid-template-columns: 1fr auto !important;
+  align-content: center !important;
+  justify-items: start !important;
+  gap: 4px !important;
+  padding: 14px !important;
+  border-radius: 14px !important;
+  text-align: left !important;
+}
+
+.settings-home button::after {
+  content: '›' !important;
+  grid-row: 1 / span 2 !important;
+  grid-column: 2 !important;
+  align-self: center !important;
+  font-size: 22px !important;
+  opacity: .42 !important;
+}
+
+.settings-home strong {
+  font-size: 16px !important;
+  line-height: 1.2 !important;
+}
+
+.settings-home span {
+  font-size: 12px !important;
+  opacity: .62 !important;
+}
+
+.settings-back {
+  width: auto !important;
+  min-height: 32px !important;
+  justify-self: start !important;
+  margin-bottom: 10px !important;
+  padding: 0 10px !important;
+  border-radius: 999px !important;
+}
+
+.settings-section-tabs {
+  display: none !important;
+}
+
+.app-tabs {
+  border-color: rgba(255, 255, 255, calc(var(--card-opacity, .42) * .20)) !important;
+  background: rgba(255, 255, 255, calc(var(--card-opacity, .42) * .26)) !important;
+  box-shadow: 0 8px 18px rgba(17, 17, 17, calc(var(--card-opacity, .42) * .08)) !important;
+  backdrop-filter: blur(calc(var(--card-opacity, .42) * 2px)) saturate(104%) brightness(1.01) !important;
+  -webkit-backdrop-filter: blur(calc(var(--card-opacity, .42) * 2px)) saturate(104%) brightness(1.01) !important;
+}
+
+#courseList .timetable-grid {
+  background: rgba(255, 255, 255, calc(var(--card-opacity, .42) * .10)) !important;
+  border-color: rgba(17, 17, 17, calc(var(--card-opacity, .42) * .10)) !important;
+}
+
+.bg-layer {
+  opacity: 1 !important;
+}
+
+.hero::before,
+.hero::after,
+.panel::before,
+.panel::after,
+#todayPage .today-panel::before,
+#todayPage .today-panel::after,
+#schedulePage .schedule-panel::before,
+#schedulePage .schedule-panel::after,
+#editPage .editor-panel::before,
+#editPage .editor-panel::after,
+#settingsPage .settings-panel::before,
+#settingsPage .settings-panel::after,
+#settingsPage .settings-group::before,
+#settingsPage .settings-group::after,
+.app-tabs::before,
+.app-tabs::after,
+#courseList .timetable-grid::before,
+#courseList .timetable-grid::after {
+  content: none !important;
+  display: none !important;
+  opacity: 0 !important;
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+#todayPage .today-course.is-finished {
+  opacity: .46 !important;
+}
+
+#todayPage .today-course.is-finished .today-time,
+#todayPage .today-course.is-finished .today-main h3,
+#todayPage .today-course.is-finished .today-main p,
+#todayPage .today-course.is-finished .today-main span {
+  text-decoration: line-through !important;
+  text-decoration-thickness: 1.5px !important;
+  text-decoration-color: rgba(17, 17, 17, .62) !important;
+}

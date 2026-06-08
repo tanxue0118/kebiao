@@ -24,7 +24,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class TodayWidgetProvider extends AppWidgetProvider {
-    private static final int[] COURSE_IDS = {
+    private static final int[] MEDIUM_COURSE_IDS = {
             R.id.widget_course_1,
             R.id.widget_course_2,
             R.id.widget_course_3,
@@ -39,12 +39,13 @@ public class TodayWidgetProvider extends AppWidgetProvider {
     }
 
     private void updateWidget(Context context, AppWidgetManager manager, int widgetId) {
-        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_today_courses);
+        RemoteViews views = new RemoteViews(context.getPackageName(), getLayoutId());
         TodayData data = TodayData.load(context);
+        int[] courseIds = getCourseIds();
 
         views.setTextViewText(R.id.widget_title, "\u4eca\u65e5\u8bfe\u7a0b");
         views.setTextViewText(R.id.widget_subtitle, data.subtitle);
-        for (int id : COURSE_IDS) {
+        for (int id : courseIds) {
             views.setViewVisibility(id, View.GONE);
         }
 
@@ -52,13 +53,13 @@ public class TodayWidgetProvider extends AppWidgetProvider {
             views.setViewVisibility(R.id.widget_course_1, View.VISIBLE);
             views.setTextViewText(R.id.widget_course_1, data.emptyText);
         } else {
-            int count = Math.min(COURSE_IDS.length, data.courses.size());
+            int count = Math.min(courseIds.length, data.courses.size());
             for (int i = 0; i < count; i++) {
-                views.setViewVisibility(COURSE_IDS[i], View.VISIBLE);
-                views.setTextViewText(COURSE_IDS[i], data.courses.get(i).summary);
+                views.setViewVisibility(courseIds[i], View.VISIBLE);
+                views.setTextViewText(courseIds[i], getCourseText(data.courses.get(i)));
             }
-            if (data.courses.size() > COURSE_IDS.length) {
-                views.setTextViewText(COURSE_IDS[COURSE_IDS.length - 1], "\u8fd8\u6709 " + (data.courses.size() - COURSE_IDS.length + 1) + " \u95e8\u8bfe");
+            if (data.courses.size() > courseIds.length) {
+                views.setTextViewText(courseIds[courseIds.length - 1], "\u8fd8\u6709 " + (data.courses.size() - courseIds.length + 1) + " \u95e8\u8bfe");
             }
         }
 
@@ -70,6 +71,18 @@ public class TodayWidgetProvider extends AppWidgetProvider {
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         views.setOnClickPendingIntent(R.id.widget_root, pendingIntent);
         manager.updateAppWidget(widgetId, views);
+    }
+
+    protected int getLayoutId() {
+        return R.layout.widget_today_courses;
+    }
+
+    protected int[] getCourseIds() {
+        return MEDIUM_COURSE_IDS;
+    }
+
+    protected String getCourseText(CourseLine course) {
+        return course.summary;
     }
 
     private static class TodayData {
@@ -119,8 +132,11 @@ public class TodayWidgetProvider extends AppWidgetProvider {
                 String name = item.optString("name", "\u672a\u547d\u540d\u8bfe\u7a0b");
                 String place = item.optString("position", item.optString("location", ""));
                 String time = formatTime(startTime, endTime);
-                String summary = time + "  " + name + (place.length() > 0 ? " \u00b7 " + place : "");
-                result.add(new CourseLine(startSection, startTime, summary));
+                String section = formatSection(startSection, endSection);
+                String meta = section + (time.length() > 0 ? "  " + time : "");
+                String compactSummary = name + "\n" + meta;
+                String summary = name + "\n" + meta + (place.length() > 0 ? " \u00b7 " + place : "");
+                result.add(new CourseLine(startSection, startTime, summary, compactSummary));
             }
             Collections.sort(result, new Comparator<CourseLine>() {
                 @Override
@@ -178,6 +194,12 @@ public class TodayWidgetProvider extends AppWidgetProvider {
             return end.length() == 0 ? start : start + "-" + end;
         }
 
+        private static String formatSection(int startSection, int endSection) {
+            if (startSection <= 0) return "\u81ea\u5b9a\u4e49\u65f6\u95f4";
+            if (endSection <= startSection) return "\u7b2c" + startSection + "\u8282";
+            return "\u7b2c" + startSection + "-" + endSection + "\u8282";
+        }
+
         private static String readAssetText(Context context, String path) throws Exception {
             InputStream input = context.getAssets().open(path);
             try {
@@ -204,15 +226,17 @@ public class TodayWidgetProvider extends AppWidgetProvider {
         }
     }
 
-    private static class CourseLine {
+    protected static class CourseLine {
         final int section;
         final String time;
         final String summary;
+        final String compactSummary;
 
-        CourseLine(int section, String time, String summary) {
+        CourseLine(int section, String time, String summary, String compactSummary) {
             this.section = section;
             this.time = time;
             this.summary = summary;
+            this.compactSummary = compactSummary;
         }
     }
 }

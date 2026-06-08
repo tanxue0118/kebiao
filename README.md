@@ -173,30 +173,3 @@ APK 提供四种桌面小组件：
 2. 如果没有缓存，则读取 APK 内置的 `assets/www/schedule.json`。
 
 这意味着在 Android 应用里新增、编辑、导入或清空课程后，小组件会主动刷新。Android 系统仍可能对小组件定时刷新做节流，所以这里的“实时”主要指应用内事件触发刷新。
-
-## 构建与发布
-
-WebView 入口必须保持：
-
-```text
-file:///android_asset/www/index.html
-```
-
-APK 打包时，Web 资源必须位于：
-
-```text
-assets/www/index.html
-assets/www/app.js
-assets/www/overrides.css
-assets/www/schedule.json
-```
-
-如果资源路径打成 `www/index.html` 而不是 `assets/www/index.html`，Android WebView 可能会显示“网页无法打开”。
-
-发布流程：
-
-1. 修改 Web 或 Android 代码。
-2. 同步 Web 文件到 `apk-build/assets/www/`。
-3. 重新构建并签名 `dist/kebiao.apk` 和 `dist/课程表.apk`。
-4. 更新版本号并提交。
-5. 推送到 GitHub；如需 Release，推送 `v*` 标签触发 GitHub Actions。

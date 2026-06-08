@@ -3,6 +3,7 @@ const BG_KEY = 'roommate-schedule:bg';
 const DELETED_KEY = 'roommate-schedule:deleted';
 const SETTINGS_KEY = 'roommate-schedule:settings:v1';
 const DAILY_POEM_KEY = 'roommate-schedule:daily-poem:v1';
+const REMOTE_DISABLED_KEY = 'roommate-schedule:remote-disabled';
 const DEFAULT_REMOTE_URL = 'https://raw.githubusercontent.com/tanxue0118/kebiao/main/schedule.json';
 const DAILY_POEM_URL = 'https://v1.jinrishici.com/all.json';
 const FIXED_BLUR_AMOUNT = 28;
@@ -125,6 +126,7 @@ let pendingRenderFrame = 0;
 let settingsPersistTimer = 0;
 let holidayRangeCacheKey = null;
 let holidayRangeCache = [];
+let suppressGridClickUntil = 0;
 const weekMatchCache = new Map();
 
 const els = {
@@ -160,8 +162,10 @@ const els = {
     location: document.getElementById('location'),
     dayOfWeek: document.getElementById('dayOfWeek'),
     weeks: document.getElementById('weeks'),
+    weekParity: document.getElementById('weekParity'),
     startSection: document.getElementById('startSection'),
     endSection: document.getElementById('endSection'),
+    customTimeEnabled: document.getElementById('customTimeEnabled'),
     startTime: document.getElementById('startTime'),
     endTime: document.getElementById('endTime')
   },
@@ -196,10 +200,18 @@ function init() {
   els.addBtn?.addEventListener('click', () => resetForm());
   els.form?.addEventListener('submit', saveCourse);
   els.deleteBtn?.addEventListener('click', deleteCourse);
+  els.fields.startSection?.addEventListener('change', syncSectionTimeDefaults);
+  els.fields.endSection?.addEventListener('change', syncSectionTimeDefaults);
+  els.fields.customTimeEnabled?.addEventListener('change', updateCustomTimeControls);
+  document.querySelector('.week-chip')?.addEventListener('click', openWeekPicker);
+  bindWeekSwipe();
   window.addEventListener('resize', debounce(renderTimetable, 160));
 
+  syncScheduleToAndroid();
   if (document.getElementById('todayPage')) showPage('todayPage');
-  window.setTimeout(() => loadRemoteSchedule(DEFAULT_REMOTE_URL, { auto: true }), 0);
+  if (!isRemoteScheduleDisabled()) {
+    window.setTimeout(() => loadRemoteSchedule(DEFAULT_REMOTE_URL, { auto: true }), 0);
+  }
 }
 
 function detectBackdropSupport() {
@@ -280,11 +292,15 @@ function normalizeCourse(course, timeSlots) {
     location: course.location || course.position || course.room || '未填写地点',
     dayOfWeek: normalizeDay(course.dayOfWeek || course.weekday || course.day || 1),
     weeks: normalizeWeeks(course.weeks || course.weekText || '1-16'),
+    weekParity: normalizeWeekParity(course.weekParity || course.parity || course.repeat || 'all'),
     startSection,
     endSection,
     startTime: customStart || startSlot?.startTime || '',
     endTime: customEnd || endSlot?.endTime || ''
   };
+  normalized.customTimeEnabled = Boolean(course.customTimeEnabled || course.customTime)
+    || normalized.startTime !== (startSlot?.startTime || '')
+    || normalized.endTime !== (endSlot?.endTime || '');
   normalized.id = normalized.id || createCourseId(normalized);
   return normalized;
 }
@@ -340,7 +356,15 @@ function normalizeWeeks(weeks) {
     .replace(/\s+/g, '');
 }
 
+function normalizeWeekParity(value) {
+  const text = String(value || 'all').toLowerCase();
+  if (['odd', 'single', 'dan', '单', '单周'].includes(text)) return 'odd';
+  if (['even', 'double', 'shuang', '双', '双周'].includes(text)) return 'even';
+  return 'all';
+}
+
 async function loadRemoteSchedule(urlOverride, options = {}) {
+  if (isRemoteScheduleDisabled()) return;
   const url = (urlOverride || DEFAULT_REMOTE_URL).trim();
 
   try {
@@ -350,7 +374,7 @@ async function loadRemoteSchedule(urlOverride, options = {}) {
     state = mergeRemoteWithLocal(remote, state);
     settings = loadSettings(state);
     activeWeek = clampMinWeek(activeWeek || getCurrentWeek(getSemesterStart()));
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    persist();
     writeSettingsControls();
     writeTimeSlotsControl();
     renderDayTabs();
@@ -390,6 +414,13 @@ function saveCourse(event) {
   event.preventDefault();
   const startSection = Number(els.fields.startSection.value);
   const endSection = Number(els.fields.endSection.value);
+  const useCustomTime = Boolean(els.fields.customTimeEnabled?.checked);
+  const startTime = useCustomTime
+    ? els.fields.startTime.value
+    : (getSlotTime(startSection, 'startTime') || els.fields.startTime.value);
+  const endTime = useCustomTime
+    ? els.fields.endTime.value
+    : (getSlotTime(endSection, 'endTime') || els.fields.endTime.value);
   const course = {
     id: els.fields.id.value || createId(),
     name: els.fields.name.value.trim(),
@@ -397,10 +428,12 @@ function saveCourse(event) {
     location: els.fields.location.value.trim(),
     dayOfWeek: Number(els.fields.dayOfWeek.value),
     weeks: els.fields.weeks.value.trim(),
+    weekParity: normalizeWeekParity(els.fields.weekParity?.value || 'all'),
     startSection,
     endSection,
-    startTime: els.fields.startTime.value,
-    endTime: els.fields.endTime.value
+    customTimeEnabled: useCustomTime,
+    startTime,
+    endTime
   };
 
   if (endSection < startSection) {
@@ -412,6 +445,7 @@ function saveCourse(event) {
   if (existingIndex >= 0) state.courses[existingIndex] = course;
   else state.courses.push(course);
 
+  enableRemoteSchedule();
   removeDeletedId(course.id);
   activeDay = course.dayOfWeek;
   persist();
@@ -426,6 +460,7 @@ function saveCourse(event) {
 function renderWeek() {
   const start = startOfWeek(addDays(parseDate(getSemesterStart()), (activeWeek - 1) * 7));
   const end = addDays(start, 6);
+  populateWeekOptions();
   if (els.todayText) {
     els.todayText.textContent = new Intl.DateTimeFormat('zh-CN', {
       month: 'long',
@@ -502,8 +537,160 @@ function renderDayTabs() {
       `<option value="${index + 1}">${name}</option>`
     )).join('');
   }
+  populateCourseSelectors();
 
   if (!visibleDays.includes(activeDay)) activeDay = visibleDays[0];
+}
+
+function populateCourseSelectors() {
+  populateWeekOptions();
+  populateSectionOptions();
+  enhanceCourseSelects();
+}
+
+function populateWeekOptions() {
+  if (!els.fields.weeks) return;
+  const current = els.fields.weeks.value;
+  const total = getSemesterWeeks();
+  const options = [
+    { value: `1-${total}`, label: `全学期（1-${total} 周）` },
+    { value: String(activeWeek), label: `当前第 ${activeWeek} 周` }
+  ];
+  const half = Math.floor(total / 2);
+  if (half >= 1 && half < total) {
+    options.push({ value: `1-${half}`, label: `前半学期（1-${half} 周）` });
+    options.push({ value: `${half + 1}-${total}`, label: `后半学期（${half + 1}-${total} 周）` });
+  }
+  for (let week = 1; week <= total; week += 1) {
+    options.push({ value: String(week), label: `第 ${week} 周` });
+  }
+  els.fields.weeks.innerHTML = options.map((option) => (
+    `<option value="${escapeHtml(option.value)}">${escapeHtml(option.label)}</option>`
+  )).join('');
+  els.fields.weeks.value = options.some((option) => option.value === current) ? current : `1-${total}`;
+}
+
+function populateSectionOptions() {
+  const slots = getDisplayTimeSlots();
+  const currentStart = els.fields.startSection?.value;
+  const currentEnd = els.fields.endSection?.value;
+  const html = slots.map((slot) => {
+    const time = [slot.startTime, slot.endTime].filter(Boolean).join('-');
+    const label = `第 ${slot.number} 节${time ? ` · ${time}` : ''}`;
+    return `<option value="${slot.number}">${escapeHtml(label)}</option>`;
+  }).join('');
+  if (els.fields.startSection) els.fields.startSection.innerHTML = html;
+  if (els.fields.endSection) els.fields.endSection.innerHTML = html;
+  if (els.fields.startSection && [...els.fields.startSection.options].some((option) => option.value === currentStart)) {
+    els.fields.startSection.value = currentStart;
+  }
+  if (els.fields.endSection && [...els.fields.endSection.options].some((option) => option.value === currentEnd)) {
+    els.fields.endSection.value = currentEnd;
+  }
+}
+
+function enhanceCourseSelects() {
+  [
+    [els.fields.dayOfWeek, '选择星期'],
+    [els.fields.weeks, '选择上课周次'],
+    [els.fields.weekParity, '选择单双周'],
+    [els.fields.startSection, '选择开始节'],
+    [els.fields.endSection, '选择结束节']
+  ].forEach(([select, title]) => enhanceSelect(select, title));
+  refreshCustomSelects();
+}
+
+function enhanceSelect(select, title) {
+  if (!select || select.dataset.enhanced === 'true') return;
+  select.dataset.enhanced = 'true';
+  select.classList.add('native-select-hidden');
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'custom-select-button';
+  button.dataset.selectFor = select.id;
+  button.addEventListener('click', () => openSelectPicker(select, title));
+  select.insertAdjacentElement('afterend', button);
+  select.addEventListener('change', () => {
+    refreshCustomSelect(select);
+    if (select === els.fields.startSection || select === els.fields.endSection) syncSectionTimeDefaults();
+  });
+}
+
+function refreshCustomSelects() {
+  [els.fields.dayOfWeek, els.fields.weeks, els.fields.weekParity, els.fields.startSection, els.fields.endSection]
+    .forEach(refreshCustomSelect);
+}
+
+function refreshCustomSelect(select) {
+  if (!select) return;
+  const button = document.querySelector(`[data-select-for="${select.id}"]`);
+  if (!button) return;
+  const selected = select.options[select.selectedIndex];
+  button.textContent = selected?.textContent || '请选择';
+}
+
+function openSelectPicker(select, title) {
+  if (!select) return;
+  openOptionPicker({
+    title,
+    options: [...select.options].map((option) => ({ value: option.value, label: option.textContent })),
+    value: select.value,
+    onSelect: (value) => {
+      select.value = value;
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  });
+}
+
+function openWeekPicker() {
+  const total = Math.max(getSemesterWeeks(), activeWeek);
+  const options = [];
+  for (let week = 1; week <= total + 8; week += 1) {
+    options.push({ value: String(week), label: week > getSemesterWeeks() ? `第 ${week} 周 · 假期中` : `第 ${week} 周` });
+  }
+  openOptionPicker({
+    title: '切换周次',
+    options,
+    value: String(activeWeek),
+    onSelect: (value) => {
+      activeWeek = clampMinWeek(Number(value));
+      renderWeek();
+      renderTimetable();
+      renderToday();
+      resetForm(false);
+    }
+  });
+}
+
+function openOptionPicker({ title, options, value, onSelect }) {
+  document.querySelector('.option-picker-backdrop')?.remove();
+  const backdrop = document.createElement('div');
+  backdrop.className = 'option-picker-backdrop';
+  const panel = document.createElement('div');
+  panel.className = 'option-picker-panel';
+  const heading = document.createElement('div');
+  heading.className = 'option-picker-heading';
+  heading.innerHTML = `<strong>${escapeHtml(title)}</strong><button type="button" aria-label="关闭">×</button>`;
+  const list = document.createElement('div');
+  list.className = 'option-picker-list';
+  options.forEach((option) => {
+    const item = document.createElement('button');
+    item.type = 'button';
+    item.className = option.value === value ? 'is-active' : '';
+    item.textContent = option.label;
+    item.addEventListener('click', () => {
+      onSelect(option.value);
+      backdrop.remove();
+    });
+    list.appendChild(item);
+  });
+  heading.querySelector('button').addEventListener('click', () => backdrop.remove());
+  backdrop.addEventListener('click', (event) => {
+    if (event.target === backdrop) backdrop.remove();
+  });
+  panel.append(heading, list);
+  backdrop.appendChild(panel);
+  document.body.appendChild(backdrop);
 }
 
 function renderTimetable() {
@@ -513,7 +700,7 @@ function renderTimetable() {
   const dayColumns = new Map(visibleDays.map((day, index) => [day, index + 2]));
   const slotRows = new Map(slots.map((slot, index) => [slot.number, index + 2]));
   const courses = state.courses
-    .filter((course) => visibleDays.includes(course.dayOfWeek) && includesWeek(course.weeks, activeWeek))
+    .filter((course) => visibleDays.includes(course.dayOfWeek) && includesCourseWeek(course, activeWeek))
     .sort((a, b) => a.dayOfWeek - b.dayOfWeek || a.startSection - b.startSection);
   const isHoliday = isHolidayWeek(activeWeek);
 
@@ -561,6 +748,11 @@ function renderTimetable() {
       cell.style.borderRadius = `${settings.cellRadius}px`;
       cell.dataset.day = String(day);
       cell.dataset.section = String(slot.number);
+      cell.title = '点击新增课程';
+      cell.addEventListener('click', () => {
+        if (Date.now() < suppressGridClickUntil) return;
+        resetFormAt(day, slot.number);
+      });
       timetable.appendChild(cell);
     });
   });
@@ -599,7 +791,7 @@ function renderToday() {
   const todayDay = getTodayDay();
   const todayWeek = clampMinWeek(getCurrentWeek(getSemesterStart()));
   const todayCourses = state.courses
-    .filter((course) => course.dayOfWeek === todayDay && includesWeek(course.weeks, todayWeek))
+    .filter((course) => course.dayOfWeek === todayDay && includesCourseWeek(course, todayWeek))
     .sort((a, b) => a.startSection - b.startSection || String(a.startTime).localeCompare(String(b.startTime)));
   const isHoliday = isHolidayWeek(todayWeek);
   const dayText = new Intl.DateTimeFormat('zh-CN', {
@@ -916,6 +1108,7 @@ function saveTimeSlots() {
     state = normalizeSchedule(state);
     persist();
     writeTimeSlotsControl();
+    populateSectionOptions();
     renderTimetable();
     renderToday();
     resetForm(false);
@@ -967,7 +1160,9 @@ function readSettingsControls() {
   if (!settings.visibleFields.length) settings.visibleFields = ['name'];
   applyAppearanceSettings();
   persistSettingsSoon();
+  syncScheduleToAndroid();
   activeWeek = clampMinWeek(activeWeek);
+  populateCourseSelectors();
   scheduleRender({ dayTabs: true, week: true, timetable: true, today: true, form: true });
 }
 
@@ -1121,11 +1316,15 @@ function fillForm(course) {
   els.fields.teacher.value = course.teacher;
   els.fields.location.value = course.location;
   els.fields.dayOfWeek.value = course.dayOfWeek;
-  els.fields.weeks.value = course.weeks;
-  els.fields.startSection.value = course.startSection;
-  els.fields.endSection.value = course.endSection;
+  setSelectValue(els.fields.weeks, course.weeks, `${course.weeks} 周`);
+  if (els.fields.weekParity) els.fields.weekParity.value = normalizeWeekParity(course.weekParity);
+  setSelectValue(els.fields.startSection, String(course.startSection), `第 ${course.startSection} 节`);
+  setSelectValue(els.fields.endSection, String(course.endSection), `第 ${course.endSection} 节`);
+  if (els.fields.customTimeEnabled) els.fields.customTimeEnabled.checked = Boolean(course.customTimeEnabled);
   els.fields.startTime.value = course.startTime;
   els.fields.endTime.value = course.endTime;
+  updateCustomTimeControls();
+  refreshCustomSelects();
   els.deleteBtn.disabled = false;
   showPage('editPage');
 }
@@ -1135,13 +1334,63 @@ function resetForm(openEditor = true) {
   els.form.reset();
   els.fields.id.value = '';
   els.fields.dayOfWeek.value = activeDay;
-  els.fields.weeks.value = String(activeWeek);
+  els.fields.weeks.value = `1-${getSemesterWeeks()}`;
+  if (els.fields.weekParity) els.fields.weekParity.value = 'all';
   els.fields.startSection.value = 1;
   els.fields.endSection.value = 2;
   els.fields.startTime.value = getSlotTime(1, 'startTime') || '08:00';
   els.fields.endTime.value = getSlotTime(2, 'endTime') || '09:40';
+  if (els.fields.customTimeEnabled) els.fields.customTimeEnabled.checked = false;
+  updateCustomTimeControls();
+  refreshCustomSelects();
   els.deleteBtn.disabled = true;
   if (openEditor) showPage('editPage');
+}
+
+function setSelectValue(select, value, label = value) {
+  if (!select) return;
+  const text = String(value || '');
+  if (![...select.options].some((option) => option.value === text)) {
+    const option = document.createElement('option');
+    option.value = text;
+    option.textContent = label;
+    select.appendChild(option);
+  }
+  select.value = text;
+}
+
+function resetFormAt(day, section) {
+  const slot = getDisplayTimeSlots().find((item) => item.number === Number(section));
+  resetForm(false);
+  activeDay = normalizeDay(day);
+  els.fields.dayOfWeek.value = activeDay;
+  els.fields.startSection.value = String(section);
+  els.fields.endSection.value = String(section);
+  els.fields.startTime.value = slot?.startTime || getSlotTime(section, 'startTime') || '08:00';
+  els.fields.endTime.value = slot?.endTime || getSlotTime(section, 'endTime') || els.fields.startTime.value;
+  updateCustomTimeControls();
+  refreshCustomSelects();
+  showPage('editPage');
+}
+
+function syncSectionTimeDefaults() {
+  const startSection = Number(els.fields.startSection?.value || 1);
+  const endSection = Number(els.fields.endSection?.value || startSection);
+  if (endSection < startSection && els.fields.endSection) {
+    els.fields.endSection.value = String(startSection);
+  }
+  const normalizedEnd = Number(els.fields.endSection?.value || startSection);
+  els.fields.startTime.value = getSlotTime(startSection, 'startTime') || els.fields.startTime.value || '08:00';
+  els.fields.endTime.value = getSlotTime(normalizedEnd, 'endTime') || els.fields.endTime.value || els.fields.startTime.value;
+  refreshCustomSelects();
+}
+
+function updateCustomTimeControls() {
+  const enabled = Boolean(els.fields.customTimeEnabled?.checked);
+  const row = document.getElementById('customTimeRow');
+  if (row) row.hidden = !enabled;
+  if (els.fields.startTime) els.fields.startTime.disabled = !enabled;
+  if (els.fields.endTime) els.fields.endTime.disabled = !enabled;
 }
 
 function getSlotTime(number, key) {
@@ -1206,6 +1455,39 @@ function removeDeletedId(id) {
 
 function persist() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  syncScheduleToAndroid();
+}
+
+function syncScheduleToAndroid() {
+  try {
+    const semesterStart = getSemesterStart();
+    const semesterWeeks = getSemesterWeeks();
+    const scheduleForWidget = {
+      ...state,
+      semesterStart,
+      semesterWeeks,
+      config: {
+        ...(state.config || {}),
+        semesterStartDate: semesterStart,
+        semesterTotalWeeks: semesterWeeks
+      }
+    };
+    window.ScheduleBridge?.saveSchedule?.(JSON.stringify(scheduleForWidget));
+  } catch (error) {
+    console.debug('Android schedule sync skipped', error);
+  }
+}
+
+function isRemoteScheduleDisabled() {
+  return localStorage.getItem(REMOTE_DISABLED_KEY) === '1';
+}
+
+function disableRemoteSchedule() {
+  localStorage.setItem(REMOTE_DISABLED_KEY, '1');
+}
+
+function enableRemoteSchedule() {
+  localStorage.removeItem(REMOTE_DISABLED_KEY);
 }
 
 function refreshScheduleView(message) {
@@ -1226,6 +1508,7 @@ function clearSchedule() {
 
   const deletedIds = new Set([...getDeletedIds(), ...(state.courses || []).map((course) => course.id).filter(Boolean)]);
   localStorage.setItem(DELETED_KEY, JSON.stringify([...deletedIds]));
+  disableRemoteSchedule();
   state = normalizeSchedule({
     semesterStart: getSemesterStart(),
     semesterWeeks: getSemesterWeeks(),
@@ -1254,6 +1537,7 @@ function importScheduleJson(event) {
       holidayRangeCacheKey = null;
       weekMatchCache.clear();
       localStorage.removeItem(DELETED_KEY);
+      enableRemoteSchedule();
       localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
       persist();
       refreshScheduleView('JSON 课表已导入');
@@ -1324,6 +1608,46 @@ function changeWeek(delta) {
   resetForm(false);
 }
 
+function bindWeekSwipe() {
+  if (!els.courseList) return;
+  let startX = 0;
+  let startY = 0;
+  let startTime = 0;
+  const finishSwipe = (clientX, clientY) => {
+    if (!startTime) return;
+    const dx = clientX - startX;
+    const dy = clientY - startY;
+    const elapsed = Date.now() - startTime;
+    startTime = 0;
+    if (elapsed > 800 || Math.abs(dx) < 64 || Math.abs(dx) < Math.abs(dy) * 1.35) return;
+    suppressGridClickUntil = Date.now() + 260;
+    changeWeek(dx < 0 ? 1 : -1);
+  };
+  els.courseList.addEventListener('touchstart', (event) => {
+    const touch = event.touches?.[0];
+    if (!touch) return;
+    startX = touch.clientX;
+    startY = touch.clientY;
+    startTime = Date.now();
+  }, { passive: true });
+  els.courseList.addEventListener('touchend', (event) => {
+    const touch = event.changedTouches?.[0];
+    if (!touch) return;
+    finishSwipe(touch.clientX, touch.clientY);
+  }, { passive: true });
+  els.courseList.addEventListener('pointerdown', (event) => {
+    if (event.pointerType === 'touch') return;
+    if (event.target.closest('.timetable-course, button, input, textarea, select')) return;
+    startX = event.clientX;
+    startY = event.clientY;
+    startTime = Date.now();
+  });
+  els.courseList.addEventListener('pointerup', (event) => {
+    if (event.pointerType === 'touch') return;
+    finishSwipe(event.clientX, event.clientY);
+  });
+}
+
 function jumpToToday() {
   const activePageId = document.querySelector('.page.active')?.id;
   activeWeek = clampMinWeek(getCurrentWeek(getSemesterStart()));
@@ -1381,6 +1705,13 @@ function getCurrentWeek(semesterStart) {
 function getTodayDay() {
   const day = new Date().getDay();
   return day === 0 ? 7 : day;
+}
+
+function includesCourseWeek(course, week) {
+  const parity = normalizeWeekParity(course.weekParity);
+  if (parity === 'odd' && week % 2 !== 1) return false;
+  if (parity === 'even' && week % 2 !== 0) return false;
+  return includesWeek(course.weeks, week);
 }
 
 function includesWeek(value, week) {

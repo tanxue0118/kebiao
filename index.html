@@ -21,14 +21,12 @@
           <h1>课程表</h1>
         </div>
       </div>
-      <div class="week-switcher">
-        <div class="week-stepper" aria-label="切换周次">
-          <button class="icon-button" id="prevWeekBtn" type="button" aria-label="上一周">‹</button>
+        <div class="week-switcher">
+          <div class="week-stepper" aria-label="切换周次">
           <div class="week-chip">
             <span id="weekLabel">第 1 周</span>
             <small id="dateRange">--</small>
           </div>
-          <button class="icon-button" id="nextWeekBtn" type="button" aria-label="下一周">›</button>
         </div>
         <button class="today-jump" id="todayJumpBtn" type="button">今天</button>
       </div>
@@ -98,27 +96,41 @@
               <select id="dayOfWeek"></select>
             </label>
             <label class="field">
-              <span>周次</span>
-              <input id="weeks" required placeholder="1-16 或 1,3,5">
+              <span>上课周次</span>
+              <select id="weeks" required></select>
+            </label>
+          </div>
+          <div class="form-row">
+            <label class="field">
+              <span>单双周</span>
+              <select id="weekParity">
+                <option value="all">每周</option>
+                <option value="odd">单周</option>
+                <option value="even">双周</option>
+              </select>
             </label>
           </div>
           <div class="form-row">
             <label class="field">
               <span>开始节</span>
-              <input id="startSection" type="number" min="1" max="12" required>
+              <select id="startSection" required></select>
             </label>
             <label class="field">
               <span>结束节</span>
-              <input id="endSection" type="number" min="1" max="12" required>
+              <select id="endSection" required></select>
             </label>
           </div>
-          <div class="form-row">
+          <label class="field custom-time-toggle">
+            <span>自定义时间</span>
+            <input id="customTimeEnabled" type="checkbox">
+          </label>
+          <div class="form-row custom-time-row" id="customTimeRow">
             <label class="field">
-              <span>开始时间</span>
+              <span>自定义开始时间</span>
               <input id="startTime" type="time" required>
             </label>
             <label class="field">
-              <span>结束时间</span>
+              <span>自定义结束时间</span>
               <input id="endTime" type="time" required>
             </label>
           </div>

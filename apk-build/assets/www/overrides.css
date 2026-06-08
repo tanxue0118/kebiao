@@ -787,3 +787,113 @@ textarea,
   text-decoration-thickness: 1.5px !important;
   text-decoration-color: rgba(17, 17, 17, .62) !important;
 }
+
+#courseList .timetable-cell {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+
+#courseList .timetable-cell:hover {
+  background: rgba(255, 255, 255, calc(var(--card-opacity, .42) * .18)) !important;
+  border-color: rgba(17, 17, 17, .16) !important;
+}
+
+.week-chip {
+  cursor: pointer !important;
+  user-select: none;
+}
+
+.native-select-hidden {
+  position: absolute !important;
+  inline-size: 1px !important;
+  block-size: 1px !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.custom-select-button {
+  width: 100% !important;
+  min-height: 44px !important;
+  justify-content: space-between !important;
+  text-align: left !important;
+  color: var(--ink) !important;
+  background: rgba(255, 255, 255, calc(var(--card-opacity, .42) * .34)) !important;
+  border: 1px solid rgba(17, 17, 17, .10) !important;
+  box-shadow: none !important;
+}
+
+.custom-select-button::after {
+  content: "⌄";
+  margin-left: auto;
+  color: rgba(17, 17, 17, .58);
+}
+
+.custom-time-toggle {
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+}
+
+.option-picker-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: end center;
+  padding: 18px;
+  background: rgba(17, 17, 17, .18);
+}
+
+.option-picker-panel {
+  width: min(520px, 100%);
+  max-height: min(68vh, 560px);
+  overflow: hidden;
+  border-radius: 18px;
+  border: 1px solid rgba(17, 17, 17, .10);
+  background: rgba(255, 255, 255, .94);
+  box-shadow: 0 18px 50px rgba(17, 17, 17, .18);
+}
+
+.option-picker-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px 10px;
+  color: var(--ink);
+}
+
+.option-picker-heading button {
+  width: 34px !important;
+  min-height: 34px !important;
+  padding: 0 !important;
+  border-radius: 999px !important;
+}
+
+.option-picker-list {
+  display: grid;
+  gap: 6px;
+  max-height: calc(min(68vh, 560px) - 60px);
+  overflow: auto;
+  padding: 8px 12px 14px;
+}
+
+.option-picker-list button {
+  width: 100% !important;
+  justify-content: flex-start !important;
+  min-height: 42px !important;
+  color: var(--ink) !important;
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.option-picker-list button.is-active {
+  background: rgba(17, 17, 17, .08) !important;
+  border-color: rgba(17, 17, 17, .10) !important;
+}
+
+@media (min-width: 720px) {
+  .option-picker-backdrop {
+    place-items: center;
+  }
+}

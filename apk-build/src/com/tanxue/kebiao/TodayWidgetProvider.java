@@ -98,7 +98,7 @@ public class TodayWidgetProvider extends AppWidgetProvider {
 
         static TodayData load(Context context) {
             try {
-                JSONObject schedule = new JSONObject(readAssetText(context, "www/schedule.json"));
+                JSONObject schedule = new JSONObject(ScheduleStore.read(context));
                 JSONObject config = schedule.optJSONObject("config");
                 String startDate = config != null
                         ? config.optString("semesterStartDate", "2026-03-02")
@@ -120,7 +120,7 @@ public class TodayWidgetProvider extends AppWidgetProvider {
             for (int i = 0; i < courses.length(); i++) {
                 JSONObject item = courses.getJSONObject(i);
                 int itemDay = item.optInt("day", item.optInt("dayOfWeek", 1));
-                if (itemDay != day || !containsWeek(item.optJSONArray("weeks"), week)) continue;
+                if (itemDay != day || !containsWeek(item, week)) continue;
 
                 int startSection = item.optInt("startSection", item.optInt("startPeriod", 0));
                 int endSection = item.optInt("endSection", item.optInt("endPeriod", startSection));
@@ -158,12 +158,37 @@ public class TodayWidgetProvider extends AppWidgetProvider {
             return result;
         }
 
-        private static boolean containsWeek(JSONArray weeks, int week) {
-            if (weeks == null) return false;
-            for (int i = 0; i < weeks.length(); i++) {
-                if (weeks.optInt(i, -1) == week) return true;
+        private static boolean containsWeek(JSONObject item, int week) {
+            String parity = normalizeParity(item.optString("weekParity", item.optString("parity", item.optString("repeat", "all"))));
+            if ("odd".equals(parity) && week % 2 != 1) return false;
+            if ("even".equals(parity) && week % 2 != 0) return false;
+            JSONArray weeks = item.optJSONArray("weeks");
+            if (weeks != null) {
+                for (int i = 0; i < weeks.length(); i++) {
+                    if (weeks.optInt(i, -1) == week) return true;
+                }
+                return false;
+            }
+            String value = item.optString("weeks", "");
+            if (value.length() == 0) return false;
+            String[] parts = value.split(",");
+            for (String raw : parts) {
+                String part = raw.trim();
+                if (part.indexOf('-') > 0) {
+                    String[] range = part.split("-");
+                    if (range.length == 2 && toInt(range[0]) <= week && week <= toInt(range[1])) return true;
+                } else if (toInt(part) == week) {
+                    return true;
+                }
             }
             return false;
+        }
+
+        private static String normalizeParity(String value) {
+            String text = value == null ? "" : value.trim().toLowerCase(Locale.US);
+            if ("odd".equals(text) || "single".equals(text) || "\u5355\u5468".equals(text) || "\u5355".equals(text)) return "odd";
+            if ("even".equals(text) || "double".equals(text) || "\u53cc\u5468".equals(text) || "\u53cc".equals(text)) return "even";
+            return "all";
         }
 
         private static int getCurrentWeek(String startDate) throws Exception {
@@ -200,20 +225,14 @@ public class TodayWidgetProvider extends AppWidgetProvider {
             return "\u7b2c" + startSection + "-" + endSection + "\u8282";
         }
 
-        private static String readAssetText(Context context, String path) throws Exception {
-            InputStream input = context.getAssets().open(path);
+        private static int toInt(String value) {
             try {
-                ByteArrayOutputStream output = new ByteArrayOutputStream();
-                byte[] buffer = new byte[4096];
-                int read;
-                while ((read = input.read(buffer)) != -1) {
-                    output.write(buffer, 0, read);
-                }
-                return new String(output.toByteArray(), StandardCharsets.UTF_8);
-            } finally {
-                input.close();
+                return Integer.parseInt(value.trim());
+            } catch (Exception e) {
+                return -1;
             }
         }
+
     }
 
     private static class TimeSlot {

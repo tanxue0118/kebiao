@@ -79,7 +79,7 @@ public class WeekWidgetProvider extends AppWidgetProvider {
                 lines[i] = DAY_NAMES[i] + "  " + "\u65e0\u8bfe";
             }
             try {
-                JSONObject schedule = new JSONObject(readAssetText(context, "www/schedule.json"));
+                JSONObject schedule = new JSONObject(ScheduleStore.read(context));
                 JSONObject config = schedule.optJSONObject("config");
                 String startDate = config != null
                         ? config.optString("semesterStartDate", "2026-03-02")
@@ -142,6 +142,9 @@ public class WeekWidgetProvider extends AppWidgetProvider {
         }
 
         private static boolean containsWeek(JSONObject item, int week) {
+            String parity = normalizeParity(item.optString("weekParity", item.optString("parity", item.optString("repeat", "all"))));
+            if ("odd".equals(parity) && week % 2 != 1) return false;
+            if ("even".equals(parity) && week % 2 != 0) return false;
             JSONArray weeks = item.optJSONArray("weeks");
             if (weeks != null) {
                 for (int i = 0; i < weeks.length(); i++) {
@@ -162,6 +165,13 @@ public class WeekWidgetProvider extends AppWidgetProvider {
                 }
             }
             return false;
+        }
+
+        private static String normalizeParity(String value) {
+            String text = value == null ? "" : value.trim().toLowerCase(Locale.US);
+            if ("odd".equals(text) || "single".equals(text) || "\u5355\u5468".equals(text) || "\u5355".equals(text)) return "odd";
+            if ("even".equals(text) || "double".equals(text) || "\u53cc\u5468".equals(text) || "\u53cc".equals(text)) return "even";
+            return "all";
         }
 
         private static Map<Integer, TimeSlot> readTimeSlots(JSONArray slots) throws Exception {
@@ -234,20 +244,6 @@ public class WeekWidgetProvider extends AppWidgetProvider {
             }
         }
 
-        private static String readAssetText(Context context, String path) throws Exception {
-            InputStream input = context.getAssets().open(path);
-            try {
-                ByteArrayOutputStream output = new ByteArrayOutputStream();
-                byte[] buffer = new byte[4096];
-                int read;
-                while ((read = input.read(buffer)) != -1) {
-                    output.write(buffer, 0, read);
-                }
-                return new String(output.toByteArray(), StandardCharsets.UTF_8);
-            } finally {
-                input.close();
-            }
-        }
     }
 
     private static class TimeSlot {

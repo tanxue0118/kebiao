@@ -213,12 +213,26 @@
               </label>
               <label class="field">
                 <span>卡片透明度</span>
-                <input id="cardOpacity" type="range" min="0.06" max="1" step="0.04">
+                <input id="cardOpacity" type="range" min="0" max="1" step="0.04">
               </label>
-              <label class="field">
-                <span>模糊强度</span>
-                <input id="blurAmount" type="range" min="0" max="40" step="1">
-              </label>
+            </div>
+          </div>
+
+          <div class="settings-divider" aria-hidden="true"></div>
+
+          <div class="settings-group">
+            <div class="section-title">
+              <div>
+                <p>课程时间</p>
+                <h2>节次时间</h2>
+              </div>
+            </div>
+            <label class="field">
+              <span>每节时间</span>
+              <textarea id="timeSlotsText" rows="8" spellcheck="false" placeholder="1 08:00-08:45&#10;2 08:55-09:40"></textarea>
+            </label>
+            <div class="form-actions data-actions compact-actions">
+              <button id="saveTimeSlotsBtn" type="button">保存时间</button>
             </div>
           </div>
 
@@ -235,6 +249,25 @@
               <input id="bgInput" type="file" accept="image/*">
               更换背景
             </label>
+          </div>
+
+          <div class="settings-divider" aria-hidden="true"></div>
+
+          <div class="settings-group">
+            <div class="section-title">
+              <div>
+                <p>本地保存</p>
+                <h2>课表备份</h2>
+              </div>
+            </div>
+            <div class="data-actions">
+              <button class="danger" id="clearScheduleBtn" type="button">清空课表</button>
+              <label class="file-button data-file-button">
+                <input id="importScheduleInput" type="file" accept="application/json,.json">
+                导入 JSON
+              </label>
+              <button class="primary" id="exportScheduleBtn" type="button">导出 JSON</button>
+            </div>
           </div>
         </div>
       </section>

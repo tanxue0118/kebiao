@@ -28,6 +28,22 @@
   --cell-gap: 6px;
   --course-opacity: .92;
   --card-opacity: .42;
+  --effective-blur: 12px;
+  --glass-blur: 30px;
+  --field-blur: 16px;
+  --mobile-field-blur: 12px;
+  --card-alpha-outer: .42;
+  --card-alpha-panel: .42;
+  --card-alpha-panel-mobile: .42;
+  --card-alpha-panel-strong-mobile: .42;
+  --card-alpha-grid: .42;
+  --card-alpha-chip: .315;
+  --card-alpha-control: .315;
+  --card-alpha-tab: .42;
+  --card-alpha-field: .315;
+  --course-color-alpha: .92;
+  --page-overlay-alpha: .08;
+  --bg-image-opacity: .88;
   --time-rail-width: 78px;
   --radius-sm: 8px;
   --radius-md: 14px;
@@ -78,8 +94,9 @@ body::after {
   position: fixed;
   inset: 0;
   z-index: -1;
-  background: rgba(255, 255, 255, .16);
-  backdrop-filter: blur(1px);
+  background: rgba(255, 255, 255, var(--page-overlay-alpha));
+  backdrop-filter: blur(calc(var(--blur) * .04));
+  -webkit-backdrop-filter: blur(calc(var(--blur) * .04));
   pointer-events: none;
 }
 
@@ -451,7 +468,7 @@ label {
   top: 10px;
   z-index: 20;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
   margin-bottom: 16px;
   padding: 6px;
@@ -469,10 +486,13 @@ label {
 
 .page {
   display: none;
+  opacity: 0;
+  transform: translateY(10px);
 }
 
 .page.active {
   display: block;
+  animation: page-enter .42s cubic-bezier(.2, .8, .2, 1) both;
 }
 
 #schedulePage {
@@ -664,10 +684,10 @@ label {
 .schedule-grid,
 .timetable-grid {
   display: grid;
-  grid-template-columns: minmax(70px, .42fr) repeat(7, minmax(126px, 1fr));
+  grid-template-columns: minmax(70px, .42fr) repeat(7, minmax(0, 1fr));
   grid-auto-rows: var(--cell-height);
   gap: var(--cell-gap);
-  overflow-x: auto;
+  overflow: hidden;
   padding-bottom: 10px;
 }
 
@@ -675,9 +695,9 @@ label {
 .schedule-grid {
   --day-count: 7;
   --visible-day-count: 7;
-  --days-width: 924px;
-  min-width: calc(var(--time-rail-width) + var(--days-width));
-  grid-template-columns: var(--time-rail-width) repeat(var(--day-count), minmax(132px, 1fr));
+  min-width: 0;
+  width: 100%;
+  grid-template-columns: var(--time-rail-width) repeat(var(--day-count), minmax(0, 1fr));
   align-items: stretch;
 }
 
@@ -687,7 +707,6 @@ label {
 [data-weekends="hidden"] .schedule-grid {
   --day-count: 5;
   --visible-day-count: 5;
-  --days-width: 660px;
 }
 
 .timetable-grid.weekends-hidden > [data-day="6"],
@@ -926,7 +945,11 @@ label {
   border-radius: var(--radius-lg);
   padding: 14px;
   overflow: hidden;
-  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+  transition:
+    transform .28s cubic-bezier(.2, .8, .2, 1),
+    box-shadow .28s cubic-bezier(.2, .8, .2, 1),
+    border-color .22s ease,
+    background .28s ease;
 }
 
 .course-card:hover,
@@ -1394,10 +1417,44 @@ button.primary,
   display: grid;
   gap: 7px;
   border-width: 1px;
+  animation: course-rise .46s cubic-bezier(.2, .8, .2, 1) both;
+  animation-delay: calc(var(--course-index, 0) * 34ms);
+  transform-origin: center top;
+  will-change: transform, opacity;
 }
 
 #courseList .timetable-course .course-meta span {
   border-radius: 999px;
+}
+
+#courseList .timetable-course:active,
+.today-course:active {
+  transform: scale(.985) translateY(1px);
+  box-shadow:
+    0 8px 22px rgba(34, 74, 94, .12),
+    inset 0 1px 0 rgba(255, 255, 255, .68);
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(.992);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes course-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(.975);
+  }
+  to {
+    opacity: var(--course-visual-opacity, var(--course-opacity));
+    transform: translateY(0) scale(1);
+  }
 }
 
 .field input,
@@ -1424,6 +1481,420 @@ button.primary,
     transition-duration: .01ms !important;
     animation-duration: .01ms !important;
     animation-iteration-count: 1 !important;
+  }
+}
+
+/* Big-tech productivity pass: Notion/Linear/Airtable inspired, not glass-first. */
+:root {
+  --ink: #1f2328;
+  --ink-soft: #59636e;
+  --ink-muted: #8b949e;
+  --paper: #f7f6f2;
+  --canvas: #ffffff;
+  --surface: #fbfaf8;
+  --surface-strong: #f0eee9;
+  --line: #dedbd4;
+  --line-soft: #ece8df;
+  --brand: #5645d4;
+  --brand-pressed: #4636bb;
+  --blue: #2563eb;
+  --teal: #0f766e;
+  --amber: #b45309;
+  --rose: #be123c;
+  --green: #15803d;
+  --shadow: 0 16px 36px rgba(31, 35, 40, .08);
+  --shadow-soft: 0 4px 14px rgba(31, 35, 40, .06);
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --blur: 0px;
+}
+
+html {
+  background: var(--paper);
+}
+
+body {
+  color: var(--ink);
+  background:
+    linear-gradient(180deg, #fbfaf7 0%, #f4f2ed 100%);
+}
+
+body::before {
+  background:
+    radial-gradient(circle at 12% 8%, rgba(86, 69, 212, .06), transparent 30%),
+    radial-gradient(circle at 86% 10%, rgba(15, 118, 110, .06), transparent 28%);
+  background-size: auto;
+  mask-image: none;
+}
+
+body::after {
+  display: none;
+}
+
+.bg-layer {
+  opacity: .34;
+  filter: saturate(.92) contrast(.96);
+}
+
+.shell {
+  width: min(1180px, calc(100% - 28px));
+}
+
+header,
+.app-header,
+.topbar,
+.toolbar,
+.panel,
+.card,
+.course-card,
+.lesson-card,
+.schedule-card,
+.settings-panel,
+.settings-group,
+.modal,
+.dialog,
+.toast,
+.today-course,
+#courseList .timetable-grid,
+.app-tabs {
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, calc(var(--card-opacity) * .86)) !important;
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+header::before,
+.app-header::before,
+.topbar::before,
+.toolbar::before,
+.panel::before,
+.card::before,
+.course-card::before,
+.lesson-card::before,
+.schedule-card::before,
+.settings-panel::before,
+.settings-group::before,
+.modal::before,
+.dialog::before,
+.today-course::before,
+.app-tabs::before {
+  display: none;
+}
+
+.hero {
+  grid-template-columns: minmax(0, 1fr) auto;
+  border-radius: 16px;
+  padding: clamp(16px, 3vw, 22px);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, .96), rgba(247, 245, 240, .94)) !important;
+}
+
+.hero h1,
+h1 {
+  font-family: var(--font-body);
+  font-size: clamp(30px, 6vw, 52px);
+  font-weight: 800;
+  color: var(--ink);
+  text-shadow: none;
+}
+
+.eyebrow,
+.section-title p {
+  color: var(--brand);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.daily-poem {
+  max-width: min(760px, 100%);
+  border-color: var(--line-soft);
+  border-radius: 8px;
+  color: var(--ink-soft);
+  background: var(--surface) !important;
+  box-shadow: none;
+}
+
+button,
+.btn,
+[role="button"],
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+.file-button {
+  min-height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 9px 14px;
+  color: var(--ink);
+  background: #ffffff !important;
+  box-shadow: 0 1px 1px rgba(31, 35, 40, .04);
+  font-weight: 650;
+}
+
+button:hover,
+.btn:hover,
+[role="button"]:hover,
+.file-button:hover {
+  border-color: #c9c4ba;
+  background: var(--surface) !important;
+  box-shadow: var(--shadow-soft);
+  transform: translateY(-1px);
+}
+
+button:active,
+.btn:active,
+[role="button"]:active,
+.file-button:active {
+  transform: scale(.97);
+}
+
+button.primary,
+.btn-primary,
+button.active,
+.app-tabs button.active,
+.days button.active,
+[aria-current="true"] {
+  color: #ffffff;
+  border-color: var(--brand);
+  background: var(--brand) !important;
+  box-shadow: 0 6px 14px rgba(86, 69, 212, .18);
+}
+
+input,
+select,
+textarea {
+  border-color: var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: none;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--brand);
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(86, 69, 212, .14);
+}
+
+.app-tabs {
+  border-radius: 12px;
+  padding: 4px;
+  gap: 4px;
+  background: rgba(255, 255, 255, .92) !important;
+}
+
+.app-tabs button {
+  border: 0;
+  border-radius: 8px;
+  background: transparent !important;
+  box-shadow: none;
+  color: var(--ink-soft);
+}
+
+.app-tabs button.active {
+  color: #ffffff;
+  background: var(--ink) !important;
+  box-shadow: 0 4px 10px rgba(31, 35, 40, .14);
+}
+
+.panel,
+.settings-panel,
+.settings-group {
+  border-radius: 14px;
+}
+
+.section-title {
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.section-title h2,
+h2 {
+  font-family: var(--font-body);
+  font-size: clamp(20px, 4vw, 30px);
+  font-weight: 750;
+}
+
+#schedulePage .schedule-panel {
+  padding: clamp(10px, 2vw, 18px);
+}
+
+#courseList .timetable-grid {
+  border-radius: 12px;
+  padding: 8px;
+  background: #ffffff !important;
+  box-shadow: 0 1px 2px rgba(31, 35, 40, .04);
+}
+
+#courseList .timetable-header,
+#courseList .timetable-cell,
+#courseList .time-cell {
+  border-color: transparent !important;
+  background: rgba(247, 246, 242, .55) !important;
+  box-shadow: none !important;
+}
+
+#courseList .timetable-header {
+  min-height: 38px;
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-weight: 750;
+  background: transparent !important;
+}
+
+#courseList .timetable-cell {
+  opacity: .58;
+}
+
+#courseList .time-cell {
+  color: var(--ink-muted);
+  background: transparent !important;
+}
+
+#courseList .time-cell strong {
+  color: var(--ink);
+}
+
+#courseList .timetable-course,
+#schedulePage .course-list > .course-card {
+  border: 1px solid rgba(31, 35, 40, .07);
+  box-shadow: 0 2px 7px rgba(31, 35, 40, .07);
+  background: #dcecfa !important;
+}
+
+#courseList .timetable-course:nth-of-type(5n + 1) {
+  background: #dcecfa !important;
+}
+
+#courseList .timetable-course:nth-of-type(5n + 2) {
+  background: #d9f3e1 !important;
+}
+
+#courseList .timetable-course:nth-of-type(5n + 3) {
+  background: #ffe8d4 !important;
+}
+
+#courseList .timetable-course:nth-of-type(5n + 4) {
+  background: #e6e0f5 !important;
+}
+
+#courseList .timetable-course:nth-of-type(5n) {
+  background: #fef7d6 !important;
+}
+
+#courseList .timetable-course h3 {
+  color: #24292f;
+  font-weight: 800;
+}
+
+#courseList .timetable-course .course-meta {
+  color: #4f5b66;
+}
+
+#courseList .timetable-course .course-meta span {
+  border: 1px solid rgba(31, 35, 40, .08);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, .48) !important;
+  box-shadow: none;
+}
+
+.today-course {
+  border-radius: 12px;
+  background: #ffffff !important;
+}
+
+.today-time {
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  color: var(--brand);
+  background: var(--surface) !important;
+}
+
+.settings-fieldset label,
+#visibleFields label,
+.hint,
+.week-chip {
+  border-color: var(--line-soft);
+  border-radius: 8px;
+  background: var(--surface) !important;
+  box-shadow: none;
+}
+
+@media (max-width: 640px) {
+  .shell {
+    width: min(100% - 12px, 1180px);
+    padding-bottom: calc(92px + env(safe-area-inset-bottom));
+  }
+
+  .hero {
+    gap: 12px;
+    border-radius: 14px;
+  }
+
+  .hero h1 {
+    font-size: 32px;
+  }
+
+  .daily-poem {
+    font-size: 12px;
+  }
+
+  .week-switcher {
+    gap: 6px;
+  }
+
+  .icon-button {
+    width: 38px;
+    min-width: 38px;
+    border-radius: 8px;
+  }
+
+  .app-tabs {
+    bottom: calc(10px + env(safe-area-inset-bottom));
+    border-radius: 14px;
+    background: rgba(255, 255, 255, .96) !important;
+    box-shadow: 0 12px 30px rgba(31, 35, 40, .16);
+  }
+
+  .app-tabs button {
+    min-height: 40px;
+    border-radius: 10px;
+    font-size: 13px;
+  }
+
+  .app-tabs button.active {
+    background: var(--ink) !important;
+  }
+
+  #schedulePage .schedule-panel {
+    padding: 7px;
+  }
+
+  #courseList .timetable-grid {
+    gap: 3px !important;
+    padding: 5px;
+  }
+
+  #courseList .timetable-header,
+  #courseList .time-cell,
+  #courseList .timetable-cell {
+    border-radius: 6px;
+    background: transparent !important;
+  }
+
+  #courseList .timetable-course {
+    border-radius: 7px;
+    box-shadow: 0 1px 4px rgba(31, 35, 40, .08);
+  }
+
+  #courseList .timetable-course .course-meta span {
+    border: 0;
+    background: transparent !important;
   }
 }
 
@@ -1848,16 +2319,188 @@ input[type="range"] {
 }
 
 @media (max-width: 640px) {
+  :root {
+    --time-rail-width: 36px;
+  }
+
   body::after {
     background-size: 30px 30px, 30px 30px, auto;
   }
 
+  .app,
+  #app,
+  .container,
+  main {
+    width: min(100% - 10px, 1180px);
+  }
+
+  .shell {
+    padding-top: 10px;
+  }
+
+  .hero {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    border-radius: 18px;
+  }
+
+  .week-switcher {
+    width: 100%;
+    justify-content: space-between;
+    gap: 6px;
+  }
+
+  .week-chip {
+    min-width: 104px;
+    padding-inline: 10px;
+  }
+
+  .icon-button {
+    width: 40px;
+    min-width: 40px;
+  }
+
+  .daily-poem {
+    max-width: 100%;
+    border-radius: 16px;
+  }
+
   .app-tabs {
     grid-template-columns: repeat(auto-fit, minmax(64px, 1fr));
+    gap: 5px;
+    padding: 5px;
+    border-radius: 18px;
+  }
+
+  .app-tabs button {
+    min-height: 38px;
+    padding: 8px 6px;
+    border-radius: 14px;
+    font-size: 13px;
+  }
+
+  #schedulePage .schedule-panel {
+    min-height: auto;
+    padding: 6px;
+    border-radius: 16px;
+  }
+
+  #schedulePage .section-title {
+    align-items: flex-start;
+    margin-bottom: 10px;
+  }
+
+  #schedulePage .section-title .primary {
+    min-height: 36px;
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+
+  #courseList.timetable {
+    gap: 8px;
   }
 
   #courseList .timetable-grid {
-    padding: 8px;
+    width: 100%;
+    min-width: 0 !important;
+    gap: 3px !important;
+    overflow: visible;
+    padding: 0;
+  }
+
+  #courseList .timetable-header {
+    min-height: 34px;
+    padding: 4px 2px;
+    border-radius: 8px;
+    font-size: 11px;
+    line-height: 1.1;
+  }
+
+  #courseList .time-cell {
+    padding: 4px 1px;
+    border-radius: 8px;
+    font-size: 9px;
+    line-height: 1.15;
+  }
+
+  #courseList .time-cell strong {
+    font-size: 12px;
+  }
+
+  #courseList .time-cell span {
+    transform: scale(.9);
+    transform-origin: center;
+  }
+
+  #courseList .time-cell span:last-child {
+    display: none;
+  }
+
+  #courseList .timetable-cell {
+    border-radius: 8px;
+  }
+
+  #courseList .timetable-course {
+    align-content: start;
+    padding: 6px 4px;
+    border-radius: 8px;
+    gap: 3px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+  }
+
+  #courseList .timetable-course::-webkit-scrollbar {
+    display: none;
+  }
+
+  #courseList .timetable-course h3 {
+    display: block;
+    font-size: clamp(11px, 3.05vw, 13px);
+    line-height: 1.18;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  #courseList .timetable-course .course-meta {
+    display: block;
+    margin-top: 1px;
+    color: rgba(82, 102, 120, .92);
+    font-size: clamp(9px, 2.5vw, 10.5px);
+    line-height: 1.18;
+  }
+
+  #courseList .timetable-course .course-meta span {
+    display: block;
+    min-height: 0;
+    min-width: 0;
+    margin-top: 1px;
+    border: 0;
+    border-radius: 0;
+    padding: 0;
+    background: transparent !important;
+    box-shadow: none;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  #courseList .timetable-course[data-span="1"] {
+    padding-block: 5px;
+  }
+
+  #courseList .timetable-course[data-span="1"] h3 {
+    font-size: clamp(10px, 2.8vw, 12px);
+  }
+
+  #courseList .timetable-course[data-span="1"] .course-meta span:nth-child(n + 3) {
+    display: none;
+  }
+
+  #courseList .timetable-course[data-span="2"] .course-meta span:nth-child(n + 4) {
+    display: none;
   }
 
   #settingsPage .settings-stack > .field,
@@ -1907,4 +2550,3070 @@ input[type="range"] {
 #visibleFields label,
 .hint {
   background: rgba(255, 255, 255, calc(var(--card-opacity) * .75)) !important;
+}
+
+/* Motion and mobile polish inspired by the iOS glass notes in UI.md. */
+:root {
+  --ease-glass: cubic-bezier(.34, 1.18, .64, 1);
+  --ease-quiet: cubic-bezier(.25, .8, .25, 1);
+}
+
+.page {
+  transform: translate3d(0, 6px, 0);
+}
+
+.page.active {
+  animation: page-enter .24s var(--ease-quiet) both;
+}
+
+#courseList .timetable-course {
+  animation: course-rise .24s var(--ease-quiet) both;
+  animation-delay: 0ms;
+  transition:
+    transform .16s var(--ease-glass),
+    box-shadow .18s ease,
+    border-color .18s ease,
+    background .22s ease;
+  will-change: auto;
+}
+
+.today-course,
+.app-tabs button,
+button,
+.file-button {
+  transition:
+    transform .16s var(--ease-glass),
+    box-shadow .18s ease,
+    background .18s ease,
+    border-color .18s ease;
+}
+
+button:active,
+.file-button:active,
+.app-tabs button:active {
+  transform: scale(.94) translateZ(0);
+}
+
+#courseList .timetable-course:active,
+.today-course:active {
+  transform: scale(.97) translateY(1px) translateZ(0);
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0) scale(.995);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes course-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 6px, 0) scale(.992);
+  }
+  to {
+    opacity: var(--course-visual-opacity, var(--course-opacity));
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@media (hover: hover) and (min-width: 641px) {
+  #courseList .timetable-course:hover,
+  .today-course:hover {
+    transform: translateY(-2px) translateZ(0);
+  }
+}
+
+@media (max-width: 640px) {
+  body::after {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .shell {
+    padding-bottom: calc(104px + env(safe-area-inset-bottom));
+  }
+
+  .hero,
+  .panel,
+  .settings-group,
+  #courseList .timetable-grid,
+  .today-course {
+    box-shadow:
+      0 10px 28px rgba(35, 68, 86, .10),
+      inset 0 1px 0 rgba(255, 255, 255, .58);
+  }
+
+  .hero,
+  .panel,
+  .settings-panel,
+  .settings-group {
+    backdrop-filter: blur(var(--field-blur)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--field-blur)) saturate(150%);
+  }
+
+  .app-tabs {
+    position: fixed;
+    top: auto;
+    right: auto;
+    bottom: calc(12px + env(safe-area-inset-bottom));
+    left: 50%;
+    z-index: 80;
+    width: min(calc(100vw - 24px), 430px);
+    margin: 0;
+    padding: 5px;
+    transform: translateX(-50%) translateZ(0);
+    border-radius: 999px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, .56), rgba(255, 255, 255, .28)),
+      rgba(220, 232, 238, .48) !important;
+    box-shadow:
+      0 14px 38px rgba(24, 49, 65, .18),
+      inset 0 1px 0 rgba(255, 255, 255, .72);
+    backdrop-filter: blur(18px) saturate(165%);
+    -webkit-backdrop-filter: blur(18px) saturate(165%);
+  }
+
+  .app-tabs button {
+    min-height: 42px;
+    border: 0;
+    border-radius: 999px;
+    padding: 8px 4px;
+    background: transparent;
+    box-shadow: none;
+    color: var(--ink-soft);
+    font-size: 13px;
+  }
+
+  .app-tabs button.active {
+    color: var(--ink);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, .70), rgba(255, 255, 255, .34)) !important;
+    box-shadow:
+      0 4px 12px rgba(31, 73, 96, .14),
+      inset 0 1px 0 rgba(255, 255, 255, .80);
+  }
+
+  #schedulePage .section-title {
+    gap: 8px;
+  }
+
+  #schedulePage .section-title h2 {
+    font-size: clamp(18px, 5vw, 24px);
+  }
+
+  #courseList .timetable-grid {
+    border-radius: 14px;
+    background:
+      linear-gradient(145deg, rgba(255, 255, 255, .24), rgba(255, 255, 255, .10)) !important;
+  }
+
+  #courseList .timetable-header,
+  #courseList .timetable-cell,
+  #courseList .time-cell {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .42) !important;
+  }
+
+  #courseList .timetable-course {
+    min-width: 0;
+    max-width: 100%;
+    overscroll-behavior: contain;
+    box-shadow:
+      0 6px 16px rgba(34, 74, 94, .10),
+      inset 0 1px 0 rgba(255, 255, 255, .64);
+  }
+
+  #courseList .timetable-course h3 {
+    margin: 0;
+    letter-spacing: 0;
+    text-wrap: balance;
+  }
+
+  #courseList .timetable-course .course-meta span + span::before {
+    content: "";
+  }
+
+  #courseList .timetable-course[data-span="1"] .course-meta {
+    opacity: .88;
+  }
+
+  #courseList .timetable-course:hover,
+  .today-course:hover,
+  .course-card:hover,
+  .lesson-card:hover,
+  .schedule-card:hover,
+  .course-item:hover,
+  .lesson-item:hover {
+    transform: none;
+  }
+
+  #courseList .timetable-course:active,
+  .today-course:active,
+  .course-card:active {
+    transform: scale(.97) translateY(1px) translateZ(0);
+  }
+
+  .today-course {
+    border-radius: 18px;
+    padding: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+/* Final no-frame cleanup: keep structure with spacing and color, not boxes. */
+body::before,
+body::after {
+  display: none !important;
+}
+
+body {
+  background:
+    linear-gradient(180deg, rgba(251, 250, 247, .74) 0%, rgba(244, 242, 237, .66) 100%) !important;
+}
+
+:root {
+  --surface-blur: var(--effective-blur);
+}
+
+.hero,
+.panel,
+.settings-panel,
+.settings-group,
+.course-card,
+.lesson-card,
+.schedule-card,
+.today-course,
+#courseList .timetable-grid,
+#courseList .timetable-course,
+#schedulePage .course-list > .course-card,
+#settingsPage .settings-stack > .field,
+#settingsPage .settings-stack > .form-row,
+#settingsPage .settings-stack > .settings-actions,
+#settingsPage .settings-stack > .file-button,
+#settingsPage .settings-stack > .settings-fieldset,
+#settingsPage .settings-stack > fieldset,
+.app-tabs {
+  border-color: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(var(--surface-blur)) saturate(132%) !important;
+  -webkit-backdrop-filter: blur(var(--surface-blur)) saturate(132%) !important;
+}
+
+.hero,
+.panel,
+.settings-panel,
+.settings-group {
+  background: rgba(255, 255, 255, var(--card-alpha-panel)) !important;
+  background-clip: padding-box;
+  isolation: isolate;
+}
+
+#settingsPage .settings-panel {
+  background: rgba(255, 255, 255, var(--card-alpha-outer)) !important;
+}
+
+#settingsPage .settings-group,
+#editPage .editor-panel,
+#schedulePage .schedule-panel,
+#todayPage .today-panel {
+  background: rgba(255, 255, 255, var(--card-alpha-panel)) !important;
+  backdrop-filter: blur(var(--surface-blur)) saturate(136%) !important;
+  -webkit-backdrop-filter: blur(var(--surface-blur)) saturate(136%) !important;
+}
+
+.section-title,
+#settingsPage .section-title {
+  border-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+#courseList .timetable-grid {
+  background: rgba(255, 255, 255, var(--card-alpha-grid)) !important;
+}
+
+#courseList .timetable-header,
+#courseList .timetable-cell,
+#courseList .time-cell {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+#courseList .timetable-cell {
+  opacity: 0 !important;
+}
+
+#courseList .timetable-course,
+#schedulePage .course-list > .course-card {
+  border: 0 !important;
+  box-shadow: 0 2px 8px rgba(31, 35, 40, .08) !important;
+  backdrop-filter: blur(var(--surface-blur)) saturate(136%) !important;
+  -webkit-backdrop-filter: blur(var(--surface-blur)) saturate(136%) !important;
+  background: rgba(220, 236, 250, var(--course-color-alpha)) !important;
+}
+
+#courseList .timetable-course:nth-of-type(5n + 1),
+#schedulePage .course-list > .course-card:nth-of-type(5n + 1) {
+  background: rgba(220, 236, 250, var(--course-color-alpha)) !important;
+}
+
+#courseList .timetable-course:nth-of-type(5n + 2),
+#schedulePage .course-list > .course-card:nth-of-type(5n + 2) {
+  background: rgba(217, 243, 225, var(--course-color-alpha)) !important;
+}
+
+#courseList .timetable-course:nth-of-type(5n + 3),
+#schedulePage .course-list > .course-card:nth-of-type(5n + 3) {
+  background: rgba(255, 232, 212, var(--course-color-alpha)) !important;
+}
+
+#courseList .timetable-course:nth-of-type(5n + 4),
+#schedulePage .course-list > .course-card:nth-of-type(5n + 4) {
+  background: rgba(230, 224, 245, var(--course-color-alpha)) !important;
+}
+
+#courseList .timetable-course:nth-of-type(5n),
+#schedulePage .course-list > .course-card:nth-of-type(5n) {
+  background: rgba(254, 247, 214, var(--course-color-alpha)) !important;
+}
+
+#courseList .timetable-course .course-meta span {
+  border: 0 !important;
+  background: rgba(255, 255, 255, var(--card-alpha-chip)) !important;
+}
+
+#settingsPage .settings-stack > .field,
+#settingsPage .settings-stack > .form-row,
+#settingsPage .settings-stack > .settings-actions,
+#settingsPage .settings-stack > .file-button,
+#settingsPage .settings-stack > .settings-fieldset,
+#settingsPage .settings-stack > fieldset,
+.settings-fieldset label,
+#visibleFields label,
+.hint,
+.week-chip,
+.daily-poem,
+.today-time {
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.week-chip,
+.daily-poem,
+.today-time {
+  border: 0 !important;
+  padding-inline: 0 !important;
+  background: transparent !important;
+}
+
+.week-chip *,
+.daily-poem *,
+.today-time * {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.week-chip {
+  min-width: 0 !important;
+  text-align: right;
+}
+
+.daily-poem {
+  width: auto;
+  max-width: 100%;
+  padding-block: 4px !important;
+}
+
+#settingsPage .settings-stack > .field,
+#settingsPage .settings-stack > .form-row,
+#settingsPage .settings-stack > .settings-actions,
+#settingsPage .settings-stack > .settings-fieldset,
+#settingsPage .settings-stack > fieldset,
+.settings-fieldset label,
+#visibleFields label,
+.hint {
+  background: rgba(247, 246, 242, var(--card-alpha-field)) !important;
+  backdrop-filter: blur(var(--surface-blur)) saturate(132%) !important;
+  -webkit-backdrop-filter: blur(var(--surface-blur)) saturate(132%) !important;
+}
+
+button,
+.btn,
+[role="button"],
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+.file-button,
+input,
+select,
+textarea {
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+button,
+.btn,
+[role="button"],
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+.file-button {
+  background: rgba(247, 246, 242, var(--card-alpha-control)) !important;
+}
+
+button.primary,
+.btn-primary,
+button.active,
+.app-tabs button.active,
+.days button.active,
+[aria-current="true"] {
+  background: var(--ink) !important;
+  color: #fff !important;
+}
+
+@media (max-width: 640px) {
+  .app-tabs {
+    background: rgba(255, 255, 255, var(--card-alpha-tab)) !important;
+    box-shadow: 0 10px 24px rgba(31, 35, 40, .12) !important;
+    backdrop-filter: blur(var(--surface-blur)) saturate(132%) !important;
+    -webkit-backdrop-filter: blur(var(--surface-blur)) saturate(132%) !important;
+  }
+
+  #courseList .timetable-grid {
+    background: transparent !important;
+    padding-inline: 0;
+  }
+
+  #courseList .timetable-course {
+    box-shadow: 0 1px 5px rgba(31, 35, 40, .10) !important;
+  }
+
+  .panel,
+  .settings-panel,
+  .settings-group {
+    background: rgba(255, 255, 255, var(--card-alpha-panel-mobile)) !important;
+    backdrop-filter: blur(var(--surface-blur)) saturate(132%) !important;
+    -webkit-backdrop-filter: blur(var(--surface-blur)) saturate(132%) !important;
+  }
+
+  #settingsPage .settings-panel {
+    background: rgba(255, 255, 255, var(--card-alpha-outer)) !important;
+  }
+
+  #settingsPage .settings-group,
+  #editPage .editor-panel,
+  #schedulePage .schedule-panel,
+  #todayPage .today-panel {
+    background: rgba(255, 255, 255, var(--card-alpha-panel-strong-mobile)) !important;
+    backdrop-filter: blur(var(--surface-blur)) saturate(136%) !important;
+    -webkit-backdrop-filter: blur(var(--surface-blur)) saturate(136%) !important;
+  }
+}
+
+/* Consolidated final layer: true zero-opacity, fewer blur surfaces, lower mobile cost. */
+:root {
+  --surface-blur: var(--effective-blur);
+}
+
+.hero,
+#todayPage .today-panel,
+#schedulePage .schedule-panel,
+#editPage .editor-panel,
+#settingsPage .settings-group,
+.app-tabs {
+  border-color: transparent !important;
+  background: rgba(255, 255, 255, var(--card-alpha-panel)) !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(var(--surface-blur)) saturate(128%) !important;
+  -webkit-backdrop-filter: blur(var(--surface-blur)) saturate(128%) !important;
+}
+
+#settingsPage .settings-panel {
+  border-color: transparent !important;
+  background: rgba(255, 255, 255, var(--card-alpha-outer)) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+#courseList .timetable-grid,
+.today-course,
+.course-card,
+.lesson-card,
+.schedule-card,
+#courseList .timetable-course,
+#schedulePage .course-list > .course-card,
+#settingsPage .settings-stack > .field,
+#settingsPage .settings-stack > .form-row,
+#settingsPage .settings-stack > .settings-actions,
+#settingsPage .settings-stack > .file-button,
+#settingsPage .settings-stack > .settings-fieldset,
+#settingsPage .settings-stack > fieldset,
+.settings-fieldset label,
+#visibleFields label,
+.hint {
+  border-color: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+#courseList .timetable-grid,
+.today-course {
+  background: transparent !important;
+}
+
+#settingsPage .settings-stack > .field,
+#settingsPage .settings-stack > .form-row,
+#settingsPage .settings-stack > .settings-actions,
+#settingsPage .settings-stack > .settings-fieldset,
+#settingsPage .settings-stack > fieldset,
+.settings-fieldset label,
+#visibleFields label,
+.hint {
+  background: rgba(247, 246, 242, var(--card-alpha-field)) !important;
+}
+
+#settingsPage .settings-stack > .file-button,
+button,
+.btn,
+[role="button"],
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+.file-button,
+input,
+select,
+textarea {
+  border-color: transparent !important;
+  background: rgba(247, 246, 242, var(--card-alpha-control)) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+#courseList .timetable-course,
+#schedulePage .course-list > .course-card {
+  background: rgba(220, 236, 250, var(--course-color-alpha)) !important;
+}
+
+#courseList .timetable-course:nth-of-type(5n + 1),
+#schedulePage .course-list > .course-card:nth-of-type(5n + 1) {
+  background: rgba(220, 236, 250, var(--course-color-alpha)) !important;
+}
+
+#courseList .timetable-course:nth-of-type(5n + 2),
+#schedulePage .course-list > .course-card:nth-of-type(5n + 2) {
+  background: rgba(217, 243, 225, var(--course-color-alpha)) !important;
+}
+
+#courseList .timetable-course:nth-of-type(5n + 3),
+#schedulePage .course-list > .course-card:nth-of-type(5n + 3) {
+  background: rgba(255, 232, 212, var(--course-color-alpha)) !important;
+}
+
+#courseList .timetable-course:nth-of-type(5n + 4),
+#schedulePage .course-list > .course-card:nth-of-type(5n + 4) {
+  background: rgba(230, 224, 245, var(--course-color-alpha)) !important;
+}
+
+#courseList .timetable-course:nth-of-type(5n),
+#schedulePage .course-list > .course-card:nth-of-type(5n) {
+  background: rgba(254, 247, 214, var(--course-color-alpha)) !important;
+}
+
+#courseList .timetable-course .course-meta span {
+  background: rgba(255, 255, 255, var(--card-alpha-chip)) !important;
+}
+
+.week-chip,
+.daily-poem,
+.today-time {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.page.active {
+  animation: page-enter .18s cubic-bezier(.25, .8, .25, 1) both !important;
+}
+
+#courseList .timetable-course {
+  animation: none !important;
+  transition: transform .14s cubic-bezier(.34, 1.18, .64, 1) !important;
+}
+
+button,
+.btn,
+[role="button"],
+.file-button,
+.app-tabs button {
+  transition: transform .14s cubic-bezier(.34, 1.18, .64, 1), background .14s ease !important;
+}
+
+button.primary,
+.btn-primary,
+button.active,
+.app-tabs button.active,
+.days button.active,
+[aria-current="true"] {
+  background: var(--ink) !important;
+  color: #fff !important;
+}
+
+@media (max-width: 640px) {
+  .hero,
+  #todayPage .today-panel,
+  #schedulePage .schedule-panel,
+  #editPage .editor-panel,
+  #settingsPage .settings-group {
+    background: rgba(255, 255, 255, var(--card-alpha-panel-mobile)) !important;
+    backdrop-filter: blur(var(--surface-blur)) saturate(124%) !important;
+    -webkit-backdrop-filter: blur(var(--surface-blur)) saturate(124%) !important;
+  }
+
+  .app-tabs {
+    background: rgba(255, 255, 255, var(--card-alpha-tab)) !important;
+    backdrop-filter: blur(var(--surface-blur)) saturate(124%) !important;
+    -webkit-backdrop-filter: blur(var(--surface-blur)) saturate(124%) !important;
+    box-shadow: none !important;
+  }
+}
+
+/* iOS-style timetable clarity: soft colorful course blocks with visible frames. */
+#courseList .timetable-grid {
+  background: rgba(255, 255, 255, var(--card-alpha-grid)) !important;
+}
+
+#courseList .timetable-cell {
+  opacity: 1 !important;
+  border: 1px solid rgba(255, 255, 255, calc(var(--card-opacity) * .18)) !important;
+  background: rgba(255, 255, 255, calc(var(--card-opacity) * .08)) !important;
+}
+
+#courseList .timetable-course,
+#schedulePage .course-list > .course-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, calc(var(--course-color-alpha) * .58)) !important;
+  box-shadow:
+    0 8px 18px rgba(31, 35, 40, calc(var(--card-opacity) * .10)),
+    inset 0 1px 0 rgba(255, 255, 255, calc(var(--course-color-alpha) * .52)) !important;
+}
+
+#courseList .timetable-course::before,
+#schedulePage .course-list > .course-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  display: block !important;
+  border-radius: inherit;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, calc(var(--card-opacity) * .42)), transparent 48%),
+    linear-gradient(120deg, rgba(255, 255, 255, calc(var(--card-opacity) * .24)), transparent 34%);
+  opacity: 1 !important;
+  pointer-events: none;
+  z-index: 0;
+  transition: opacity .16s ease, background .16s ease;
+}
+
+#courseList .timetable-course > *,
+#schedulePage .course-list > .course-card > * {
+  position: relative;
+  z-index: 1;
+  text-shadow: none !important;
+  filter: none !important;
+  backface-visibility: hidden;
+}
+
+#courseList .timetable-course:hover,
+#schedulePage .course-list > .course-card:hover,
+.course-card:hover {
+  transform: none !important;
+  filter: none !important;
+}
+
+#courseList .timetable-course:hover::before,
+#schedulePage .course-list > .course-card:hover::before {
+  opacity: 1 !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, calc(var(--course-color-alpha) * .48)), transparent 52%),
+    linear-gradient(120deg, rgba(255, 255, 255, calc(var(--course-color-alpha) * .30)), transparent 36%);
+}
+
+#courseList .timetable-course:hover,
+#schedulePage .course-list > .course-card:hover {
+  border-color: rgba(255, 255, 255, calc(var(--course-color-alpha) * .68)) !important;
+  box-shadow:
+    0 8px 18px rgba(31, 35, 40, .10),
+    inset 0 1px 0 rgba(255, 255, 255, calc(var(--course-color-alpha) * .62)) !important;
+}
+
+#courseList .timetable-course:nth-of-type(5n + 1),
+#schedulePage .course-list > .course-card:nth-of-type(5n + 1) {
+  background: rgba(170, 213, 244, var(--course-color-alpha)) !important;
+}
+
+#courseList .timetable-course:nth-of-type(5n + 2),
+#schedulePage .course-list > .course-card:nth-of-type(5n + 2) {
+  background: rgba(177, 228, 190, var(--course-color-alpha)) !important;
+}
+
+#courseList .timetable-course:nth-of-type(5n + 3),
+#schedulePage .course-list > .course-card:nth-of-type(5n + 3) {
+  background: rgba(246, 203, 166, var(--course-color-alpha)) !important;
+}
+
+#courseList .timetable-course:nth-of-type(5n + 4),
+#schedulePage .course-list > .course-card:nth-of-type(5n + 4) {
+  background: rgba(203, 191, 236, var(--course-color-alpha)) !important;
+}
+
+#courseList .timetable-course:nth-of-type(5n) ,
+#schedulePage .course-list > .course-card:nth-of-type(5n) {
+  background: rgba(244, 225, 140, var(--course-color-alpha)) !important;
+}
+
+@media (max-width: 640px) {
+  #courseList .timetable-cell {
+    border-color: rgba(255, 255, 255, calc(var(--card-opacity) * .12)) !important;
+    background: rgba(255, 255, 255, calc(var(--card-opacity) * .04)) !important;
+  }
+
+  #courseList .timetable-course,
+  #schedulePage .course-list > .course-card {
+    border-color: rgba(255, 255, 255, calc(var(--course-color-alpha) * .52)) !important;
+    box-shadow:
+      0 4px 10px rgba(31, 35, 40, calc(var(--card-opacity) * .08)),
+      inset 0 1px 0 rgba(255, 255, 255, calc(var(--course-color-alpha) * .48)) !important;
+  }
+}
+
+/* Final hover fix: animate highlights, never the text layer. */
+#courseList .timetable-course,
+#courseList .timetable-course:hover,
+#schedulePage .course-list > .course-card,
+#schedulePage .course-list > .course-card:hover {
+  transform: none !important;
+}
+
+#courseList .timetable-course h3,
+#courseList .timetable-course .course-meta,
+#courseList .timetable-course .course-meta span {
+  transform: none !important;
+  text-shadow: none !important;
+  filter: none !important;
+}
+
+/* Appearance control authority: card opacity/blur are separate from course color opacity. */
+.hero,
+.panel,
+.card,
+.settings-panel,
+.settings-group,
+#todayPage .today-panel,
+#schedulePage .schedule-panel,
+#editPage .editor-panel,
+.today-course,
+.course-card,
+.lesson-card,
+.schedule-card,
+.app-tabs {
+  border-color: rgba(255, 255, 255, calc(var(--card-opacity) * .55)) !important;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(255, 255, 255, calc(var(--card-opacity) * .44)), transparent 42%),
+    rgba(255, 255, 255, var(--card-alpha-panel)) !important;
+  box-shadow:
+    0 18px 42px rgba(31, 35, 40, calc(var(--card-opacity) * .12)),
+    inset 0 1px 0 rgba(255, 255, 255, calc(var(--card-opacity) * .60)) !important;
+  backdrop-filter: blur(var(--surface-blur)) saturate(136%) brightness(1.02) !important;
+  -webkit-backdrop-filter: blur(var(--surface-blur)) saturate(136%) brightness(1.02) !important;
+}
+
+.settings-panel {
+  background: rgba(255, 255, 255, var(--card-alpha-outer)) !important;
+}
+
+#settingsPage .settings-stack > .field,
+#settingsPage .settings-stack > .form-row,
+#settingsPage .settings-stack > .settings-actions,
+#settingsPage .settings-stack > .file-button,
+#settingsPage .settings-stack > .settings-fieldset,
+#settingsPage .settings-stack > fieldset,
+.settings-fieldset label,
+#visibleFields label,
+.hint {
+  border-color: rgba(255, 255, 255, calc(var(--card-opacity) * .32)) !important;
+  background: rgba(247, 246, 242, var(--card-alpha-field)) !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(var(--surface-blur)) saturate(124%) !important;
+  -webkit-backdrop-filter: blur(var(--surface-blur)) saturate(124%) !important;
+}
+
+.hero::before,
+.panel::before,
+.card::before,
+.settings-panel::before,
+.settings-group::before,
+.today-course::before,
+.course-card::before,
+.lesson-card::before,
+.schedule-card::before,
+.app-tabs::before {
+  opacity: calc(var(--card-opacity) * .08) !important;
+}
+
+#courseList .timetable-grid {
+  border-color: rgba(255, 255, 255, calc(var(--card-opacity) * .45)) !important;
+  background: rgba(255, 255, 255, var(--card-alpha-grid)) !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(var(--surface-blur)) saturate(124%) !important;
+  -webkit-backdrop-filter: blur(var(--surface-blur)) saturate(124%) !important;
+}
+
+#courseList .timetable-cell {
+  opacity: 1 !important;
+  border: 1px solid rgba(255, 255, 255, calc(var(--card-opacity) * .36)) !important;
+  background: rgba(255, 255, 255, calc(var(--card-opacity) * .10)) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, calc(var(--card-opacity) * .38)) !important;
+}
+
+#courseList .timetable-course,
+#schedulePage .course-list > .course-card {
+  position: relative;
+  overflow: hidden;
+  opacity: 1 !important;
+  border: 1px solid rgba(255, 255, 255, calc(var(--course-color-alpha) * .58)) !important;
+  box-shadow:
+    0 8px 18px rgba(31, 35, 40, .10),
+    inset 0 1px 0 rgba(255, 255, 255, calc(var(--course-color-alpha) * .52)) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  transform: none !important;
+  transition: border-color .16s ease, box-shadow .16s ease !important;
+  will-change: auto !important;
+}
+
+#courseList .timetable-course:nth-of-type(5n + 1),
+#schedulePage .course-list > .course-card:nth-of-type(5n + 1) {
+  background: rgba(170, 213, 244, var(--course-color-alpha)) !important;
+}
+
+#courseList .timetable-course:nth-of-type(5n + 2),
+#schedulePage .course-list > .course-card:nth-of-type(5n + 2) {
+  background: rgba(177, 228, 190, var(--course-color-alpha)) !important;
+}
+
+#courseList .timetable-course:nth-of-type(5n + 3),
+#schedulePage .course-list > .course-card:nth-of-type(5n + 3) {
+  background: rgba(246, 203, 166, var(--course-color-alpha)) !important;
+}
+
+#courseList .timetable-course:nth-of-type(5n + 4),
+#schedulePage .course-list > .course-card:nth-of-type(5n + 4) {
+  background: rgba(203, 191, 236, var(--course-color-alpha)) !important;
+}
+
+#courseList .timetable-course:nth-of-type(5n),
+#schedulePage .course-list > .course-card:nth-of-type(5n) {
+  background: rgba(244, 225, 140, var(--course-color-alpha)) !important;
+}
+
+#courseList .timetable-course::before,
+#schedulePage .course-list > .course-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  display: block !important;
+  border-radius: inherit;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, calc(var(--course-color-alpha) * .34)), transparent 54%),
+    linear-gradient(120deg, rgba(255, 255, 255, calc(var(--course-color-alpha) * .22)), transparent 34%);
+  opacity: .78 !important;
+  pointer-events: none;
+  z-index: 0;
+  transition: opacity .16s ease, background .16s ease;
+}
+
+#courseList .timetable-course:hover,
+#schedulePage .course-list > .course-card:hover,
+.course-card:hover {
+  transform: none !important;
+  filter: none !important;
+}
+
+#courseList .timetable-course:hover::before,
+#schedulePage .course-list > .course-card:hover::before {
+  opacity: 1 !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, calc(var(--course-color-alpha) * .48)), transparent 56%),
+    linear-gradient(120deg, rgba(255, 255, 255, calc(var(--course-color-alpha) * .30)), transparent 36%);
+}
+
+#courseList .timetable-course > *,
+#schedulePage .course-list > .course-card > * {
+  position: relative;
+  z-index: 1;
+  transform: none !important;
+  text-shadow: none !important;
+  filter: none !important;
+  backface-visibility: hidden;
+}
+
+#courseList .timetable-course .course-meta span {
+  border-color: rgba(255, 255, 255, calc(var(--course-color-alpha) * .44)) !important;
+  background: rgba(255, 255, 255, calc(var(--course-color-alpha) * .24)) !important;
+}
+
+@media (max-width: 640px) {
+  #courseList .timetable-grid {
+    --day-min-width: 54px;
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #courseList .timetable-course {
+    transition: border-color .14s ease, box-shadow .14s ease !important;
+  }
+
+  #courseList .timetable-course .course-meta span {
+    border: 0 !important;
+    background: transparent !important;
+  }
+}
+
+/* Keep only the main setting groups as glass; inner controls stay crisp and cheap. */
+#settingsPage .settings-panel {
+  background: rgba(255, 255, 255, var(--card-alpha-outer)) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+#settingsPage .settings-stack > .field,
+#settingsPage .settings-stack > .form-row,
+#settingsPage .settings-stack > .settings-actions,
+#settingsPage .settings-stack > .file-button,
+#settingsPage .settings-stack > .settings-fieldset,
+#settingsPage .settings-stack > fieldset,
+.settings-fieldset label,
+#visibleFields label,
+.hint,
+#settingsPage button,
+#settingsPage .btn,
+#settingsPage input,
+#settingsPage select,
+#settingsPage textarea {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+#settingsPage .settings-group {
+  background:
+    radial-gradient(circle at 18% 0%, rgba(255, 255, 255, calc(var(--card-opacity) * .38)), transparent 42%),
+    rgba(255, 255, 255, var(--card-alpha-panel)) !important;
+  backdrop-filter: blur(var(--surface-blur)) saturate(132%) brightness(1.02) !important;
+  -webkit-backdrop-filter: blur(var(--surface-blur)) saturate(132%) brightness(1.02) !important;
+}
+
+/* GitHub baseline restored: blur strength controls glass blur independently of opacity. */
+:root {
+  --surface-blur: var(--blur);
+}
+
+body {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(251, 250, 247, var(--page-overlay-alpha)) 0%,
+      rgba(244, 242, 237, calc(var(--page-overlay-alpha) * .72)) 100%
+    ) !important;
+}
+
+.bg-layer {
+  opacity: var(--bg-image-opacity) !important;
+  filter: saturate(1.08) contrast(1.02) !important;
+}
+
+body.has-custom-bg {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(251, 250, 247, calc(var(--page-overlay-alpha) * .55)) 0%,
+      rgba(244, 242, 237, calc(var(--page-overlay-alpha) * .36)) 100%
+    ) !important;
+}
+
+.hero,
+.panel,
+.card,
+#todayPage .today-panel,
+#schedulePage .schedule-panel,
+#editPage .editor-panel,
+.today-course,
+.course-card,
+.lesson-card,
+.schedule-card,
+.app-tabs {
+  background:
+    radial-gradient(circle at 18% 0%, rgba(255, 255, 255, calc(var(--card-opacity) * .36)), transparent 42%),
+    rgba(255, 255, 255, var(--card-alpha-panel)) !important;
+  backdrop-filter: blur(var(--blur)) saturate(138%) brightness(1.02) !important;
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(138%) brightness(1.02) !important;
+}
+
+#settingsPage .settings-panel {
+  background: rgba(255, 255, 255, var(--card-alpha-outer)) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+#settingsPage .settings-group {
+  background:
+    radial-gradient(circle at 18% 0%, rgba(255, 255, 255, calc(var(--card-opacity) * .36)), transparent 42%),
+    rgba(255, 255, 255, var(--card-alpha-panel)) !important;
+  backdrop-filter: blur(var(--blur)) saturate(136%) brightness(1.02) !important;
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(136%) brightness(1.02) !important;
+}
+
+#settingsPage .settings-stack > .field,
+#settingsPage .settings-stack > .form-row,
+#settingsPage .settings-stack > .settings-actions,
+#settingsPage .settings-stack > .file-button,
+#settingsPage .settings-stack > .settings-fieldset,
+#settingsPage .settings-stack > fieldset,
+.settings-fieldset label,
+#visibleFields label,
+.hint,
+#settingsPage button,
+#settingsPage .btn,
+#settingsPage input,
+#settingsPage select,
+#settingsPage textarea {
+  background: rgba(247, 246, 242, var(--card-alpha-field)) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+@media (max-width: 640px) {
+  .hero,
+  .panel,
+  .card,
+  #todayPage .today-panel,
+  #schedulePage .schedule-panel,
+  #editPage .editor-panel,
+  .today-course,
+  .course-card,
+  .lesson-card,
+  .schedule-card,
+  .app-tabs,
+  #settingsPage .settings-group {
+    backdrop-filter: blur(var(--blur)) saturate(132%) brightness(1.02) !important;
+    -webkit-backdrop-filter: blur(var(--blur)) saturate(132%) brightness(1.02) !important;
+  }
+}
+
+/* Card framing pass: section cards stay framed, blur-adjustable, with softer highlights. */
+.hero,
+.panel,
+.card,
+#todayPage .today-panel,
+#schedulePage .schedule-panel,
+#editPage .editor-panel,
+#settingsPage .settings-group,
+.today-course,
+.course-card,
+.lesson-card,
+.schedule-card,
+#courseList .timetable-grid,
+.app-tabs {
+  border: 1px solid rgba(255, 255, 255, calc(.16 + var(--card-opacity) * .34)) !important;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(255, 255, 255, calc(var(--card-opacity) * .20)), transparent 40%),
+    rgba(255, 255, 255, var(--card-alpha-panel)) !important;
+  box-shadow:
+    0 14px 34px rgba(31, 35, 40, calc(var(--card-opacity) * .10)),
+    inset 0 1px 0 rgba(255, 255, 255, calc(var(--card-opacity) * .34)) !important;
+  backdrop-filter: blur(var(--blur)) saturate(132%) brightness(1.015) !important;
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(132%) brightness(1.015) !important;
+}
+
+#settingsPage .settings-panel {
+  border: 1px solid rgba(255, 255, 255, calc(var(--card-opacity) * .18)) !important;
+  background: rgba(255, 255, 255, var(--card-alpha-outer)) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+#settingsPage .settings-stack > .field,
+#settingsPage .settings-stack > .form-row,
+#settingsPage .settings-stack > .settings-actions,
+#settingsPage .settings-stack > .file-button,
+#settingsPage .settings-stack > .settings-fieldset,
+#settingsPage .settings-stack > fieldset,
+.settings-fieldset label,
+#visibleFields label,
+.hint {
+  border: 1px solid rgba(255, 255, 255, calc(.10 + var(--card-opacity) * .22)) !important;
+  background: rgba(247, 246, 242, calc(var(--card-opacity) * .22)) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, calc(var(--card-opacity) * .22)) !important;
+  backdrop-filter: blur(var(--field-blur)) saturate(118%) !important;
+  -webkit-backdrop-filter: blur(var(--field-blur)) saturate(118%) !important;
+}
+
+#editPage .editor-panel,
+#schedulePage .schedule-panel,
+#courseList .timetable-grid {
+  border-color: rgba(255, 255, 255, calc(.18 + var(--card-opacity) * .34)) !important;
+}
+
+.hero::before,
+.panel::before,
+.card::before,
+#settingsPage .settings-group::before,
+#todayPage .today-panel::before,
+#schedulePage .schedule-panel::before,
+#editPage .editor-panel::before,
+.today-course::before,
+.course-card::before,
+.lesson-card::before,
+.schedule-card::before,
+.app-tabs::before {
+  opacity: calc(var(--card-opacity) * .08) !important;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, .32), transparent 38%, rgba(255, 255, 255, .08)) !important;
+}
+
+#courseList .timetable-course::before,
+#schedulePage .course-list > .course-card::before {
+  opacity: .55 !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, calc(var(--course-color-alpha) * .20)), transparent 54%),
+    linear-gradient(120deg, rgba(255, 255, 255, calc(var(--course-color-alpha) * .13)), transparent 34%) !important;
+}
+
+#courseList .timetable-course:hover::before,
+#schedulePage .course-list > .course-card:hover::before {
+  opacity: .78 !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, calc(var(--course-color-alpha) * .28)), transparent 56%),
+    linear-gradient(120deg, rgba(255, 255, 255, calc(var(--course-color-alpha) * .18)), transparent 36%) !important;
+}
+
+@media (max-width: 640px) {
+  #settingsPage .settings-stack > .field,
+  #settingsPage .settings-stack > .form-row,
+  #settingsPage .settings-stack > .settings-actions,
+  #settingsPage .settings-stack > .file-button,
+  #settingsPage .settings-stack > .settings-fieldset,
+  #settingsPage .settings-stack > fieldset,
+  .settings-fieldset label,
+  #visibleFields label,
+  .hint {
+    backdrop-filter: blur(var(--mobile-field-blur)) saturate(112%) !important;
+    -webkit-backdrop-filter: blur(var(--mobile-field-blur)) saturate(112%) !important;
+  }
+}
+
+/* Final blur/frame correction: explicit px variables for WebView-safe blur. */
+.hero,
+.panel,
+.card,
+#todayPage .today-panel,
+#schedulePage .schedule-panel,
+#editPage .editor-panel,
+#settingsPage .settings-group,
+.today-course,
+.course-card,
+.lesson-card,
+.schedule-card,
+#courseList .timetable-grid,
+.app-tabs {
+  border: 1px solid rgba(98, 116, 132, calc(.22 + var(--card-opacity) * .20)) !important;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(255, 255, 255, calc(var(--card-opacity) * .12)), transparent 38%),
+    rgba(255, 255, 255, var(--card-alpha-panel)) !important;
+  box-shadow:
+    0 12px 28px rgba(31, 35, 40, calc(var(--card-opacity) * .09)),
+    inset 0 1px 0 rgba(255, 255, 255, calc(var(--card-opacity) * .20)) !important;
+  backdrop-filter: blur(var(--glass-blur)) saturate(126%) brightness(1.01) !important;
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(126%) brightness(1.01) !important;
+}
+
+#settingsPage .settings-panel {
+  border: 1px solid rgba(98, 116, 132, calc(.14 + var(--card-opacity) * .16)) !important;
+}
+
+#settingsPage .settings-stack > .field,
+#settingsPage .settings-stack > .form-row,
+#settingsPage .settings-stack > .settings-actions,
+#settingsPage .settings-stack > .file-button,
+#settingsPage .settings-stack > .settings-fieldset,
+#settingsPage .settings-stack > fieldset,
+.settings-fieldset label,
+#visibleFields label,
+.hint {
+  border: 1px solid rgba(98, 116, 132, calc(.18 + var(--card-opacity) * .16)) !important;
+  background: rgba(247, 246, 242, calc(var(--card-opacity) * .18)) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, calc(var(--card-opacity) * .14)) !important;
+  backdrop-filter: blur(var(--field-blur)) saturate(112%) brightness(1.005) !important;
+  -webkit-backdrop-filter: blur(var(--field-blur)) saturate(112%) brightness(1.005) !important;
+}
+
+.hero::before,
+.panel::before,
+.card::before,
+#settingsPage .settings-group::before,
+#todayPage .today-panel::before,
+#schedulePage .schedule-panel::before,
+#editPage .editor-panel::before,
+.today-course::before,
+.course-card::before,
+.lesson-card::before,
+.schedule-card::before,
+.app-tabs::before {
+  opacity: calc(var(--card-opacity) * .18) !important;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, .18), transparent 36%, rgba(255, 255, 255, .04)) !important;
+}
+
+#courseList .timetable-course::before,
+#schedulePage .course-list > .course-card::before {
+  opacity: .36 !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, calc(var(--course-color-alpha) * .12)), transparent 54%),
+    linear-gradient(120deg, rgba(255, 255, 255, calc(var(--course-color-alpha) * .08)), transparent 34%) !important;
+}
+
+#courseList .timetable-course:hover::before,
+#schedulePage .course-list > .course-card:hover::before {
+  opacity: .55 !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, calc(var(--course-color-alpha) * .18)), transparent 56%),
+    linear-gradient(120deg, rgba(255, 255, 255, calc(var(--course-color-alpha) * .11)), transparent 36%) !important;
+}
+
+@media (max-width: 640px) {
+  .hero,
+  .panel,
+  .card,
+  #todayPage .today-panel,
+  #schedulePage .schedule-panel,
+  #editPage .editor-panel,
+  #settingsPage .settings-group,
+  .today-course,
+  .course-card,
+  .lesson-card,
+  .schedule-card,
+  #courseList .timetable-grid,
+  .app-tabs {
+    backdrop-filter: blur(var(--glass-blur)) saturate(120%) brightness(1.01) !important;
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(120%) brightness(1.01) !important;
+  }
+
+  #settingsPage .settings-stack > .field,
+  #settingsPage .settings-stack > .form-row,
+  #settingsPage .settings-stack > .settings-actions,
+  #settingsPage .settings-stack > .file-button,
+  #settingsPage .settings-stack > .settings-fieldset,
+  #settingsPage .settings-stack > fieldset,
+  .settings-fieldset label,
+  #visibleFields label,
+  .hint {
+    backdrop-filter: blur(var(--mobile-field-blur)) saturate(108%) brightness(1.005) !important;
+    -webkit-backdrop-filter: blur(var(--mobile-field-blur)) saturate(108%) brightness(1.005) !important;
+  }
+}
+
+/* Unified main-card blur: settings, local save, five-day timetable, and today overview. */
+#todayPage .today-panel,
+#schedulePage .schedule-panel,
+#editPage .editor-panel,
+#settingsPage .settings-panel,
+#courseList .timetable-grid {
+  border: 1px solid rgba(83, 101, 118, calc(.22 + var(--card-opacity) * .16)) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, calc(var(--card-opacity) * .10)), rgba(255, 255, 255, calc(var(--card-opacity) * .04))),
+    rgba(255, 255, 255, var(--card-alpha-panel)) !important;
+  box-shadow:
+    0 10px 24px rgba(31, 35, 40, calc(var(--card-opacity) * .08)),
+    inset 0 1px 0 rgba(255, 255, 255, calc(var(--card-opacity) * .10)) !important;
+  backdrop-filter: blur(var(--glass-blur)) saturate(122%) brightness(1.01) !important;
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(122%) brightness(1.01) !important;
+}
+
+#settingsPage .settings-group {
+  border: 1px solid rgba(83, 101, 118, calc(.16 + var(--card-opacity) * .12)) !important;
+  background: rgba(255, 255, 255, calc(var(--card-opacity) * .20)) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+#todayPage .today-panel::after,
+#schedulePage .schedule-panel::after,
+#editPage .editor-panel::after,
+#settingsPage .settings-panel::after,
+#settingsPage .settings-group::after,
+#courseList .timetable-grid::after,
+#settingsPage .settings-stack > .field::after,
+#settingsPage .settings-stack > .form-row::after,
+#settingsPage .settings-stack > .settings-actions::after,
+#settingsPage .settings-stack > .settings-fieldset::after,
+#settingsPage .settings-stack > fieldset::after,
+.settings-fieldset label::after,
+#visibleFields label::after,
+.hint::after {
+  content: none !important;
+}
+
+#todayPage .today-panel::before,
+#schedulePage .schedule-panel::before,
+#editPage .editor-panel::before,
+#settingsPage .settings-panel::before,
+#settingsPage .settings-group::before,
+#courseList .timetable-grid::before {
+  opacity: calc(var(--card-opacity) * .035) !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.08), transparent 42%) !important;
+}
+
+@media (max-width: 640px) {
+  #todayPage .today-panel,
+  #schedulePage .schedule-panel,
+  #editPage .editor-panel,
+  #settingsPage .settings-panel,
+  #courseList .timetable-grid {
+    backdrop-filter: blur(var(--glass-blur)) saturate(116%) brightness(1.01) !important;
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(116%) brightness(1.01) !important;
+  }
+}
+
+/* Cleanup after removing the heavy fallback blur layers. */
+.hero,
+.panel,
+.card,
+#todayPage .today-panel,
+#schedulePage .schedule-panel,
+#editPage .editor-panel,
+#settingsPage .settings-panel,
+#settingsPage .settings-group,
+.today-course,
+.course-card,
+.lesson-card,
+.schedule-card,
+#courseList .timetable-grid,
+.app-tabs {
+  overflow: hidden !important;
+  isolation: isolate;
+}
+
+#settingsPage .settings-stack > .field,
+#settingsPage .settings-stack > .form-row,
+#settingsPage .settings-stack > .settings-actions,
+#settingsPage .settings-stack > .file-button,
+#settingsPage .settings-stack > .settings-fieldset,
+#settingsPage .settings-stack > fieldset,
+.settings-fieldset label,
+#visibleFields label,
+.hint {
+  overflow: visible !important;
+  isolation: auto;
+}
+
+.hero > *,
+.panel > *,
+.card > *,
+#todayPage .today-panel > *,
+#schedulePage .schedule-panel > *,
+#editPage .editor-panel > *,
+#settingsPage .settings-panel > *,
+#settingsPage .settings-group > *,
+.today-course > *,
+.course-card > *,
+.lesson-card > *,
+.schedule-card > *,
+#courseList .timetable-grid > *,
+.app-tabs > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Final target: only the main cards share the blur control, with low-cost rendering. */
+.hero::after,
+.panel::after,
+.card::after,
+#todayPage .today-panel::after,
+#schedulePage .schedule-panel::after,
+#editPage .editor-panel::after,
+#settingsPage .settings-group::after,
+.today-course::after,
+.course-card::after,
+.lesson-card::after,
+.schedule-card::after,
+#courseList .timetable-grid::after,
+.app-tabs::after,
+#settingsPage .settings-panel::after,
+#settingsPage .settings-stack > .field::after,
+#settingsPage .settings-stack > .form-row::after,
+#settingsPage .settings-stack > .settings-actions::after,
+#settingsPage .settings-stack > .settings-fieldset::after,
+#settingsPage .settings-stack > fieldset::after,
+.settings-fieldset label::after,
+#visibleFields label::after,
+.hint::after {
+  content: none !important;
+}
+
+#settingsPage .settings-stack > .file-button::after {
+  content: "选择图片" !important;
+  position: relative !important;
+  inset: auto !important;
+  z-index: 1 !important;
+  display: inline !important;
+  background: transparent !important;
+  filter: none !important;
+  opacity: 1 !important;
+}
+
+#settingsPage .settings-panel,
+#settingsPage .settings-group,
+#editPage .editor-panel,
+#schedulePage .schedule-panel,
+#todayPage .today-panel,
+#courseList .timetable-grid {
+  position: relative !important;
+  isolation: isolate;
+  overflow: hidden !important;
+  border: 1px solid rgba(83, 101, 118, calc(.20 + var(--card-opacity) * .18)) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, calc(var(--card-opacity) * .08)), rgba(255, 255, 255, calc(var(--card-opacity) * .03))),
+    rgba(255, 255, 255, var(--card-alpha-panel)) !important;
+  box-shadow:
+    0 10px 24px rgba(31, 35, 40, calc(var(--card-opacity) * .08)),
+    inset 0 1px 0 rgba(255, 255, 255, calc(var(--card-opacity) * .12)) !important;
+  backdrop-filter: blur(var(--glass-blur)) saturate(122%) brightness(1.01) !important;
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(122%) brightness(1.01) !important;
+}
+
+#settingsPage .settings-panel {
+  background: rgba(255, 255, 255, var(--card-alpha-outer)) !important;
+}
+
+#settingsPage .settings-stack > .field,
+#settingsPage .settings-stack > .form-row,
+#settingsPage .settings-stack > .settings-actions,
+#settingsPage .settings-stack > .file-button,
+#settingsPage .settings-stack > .settings-fieldset,
+#settingsPage .settings-stack > fieldset,
+.settings-fieldset label,
+#visibleFields label,
+.hint {
+  border: 1px solid rgba(83, 101, 118, calc(.12 + var(--card-opacity) * .12)) !important;
+  background: rgba(247, 246, 242, calc(var(--card-opacity) * .16)) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+#settingsPage .settings-group::before,
+#editPage .editor-panel::before,
+#schedulePage .schedule-panel::before,
+#todayPage .today-panel::before,
+#courseList .timetable-grid::before {
+  z-index: 0 !important;
+  opacity: calc(var(--card-opacity) * .04) !important;
+  background: linear-gradient(135deg, rgba(255, 255, 255, .08), transparent 34%) !important;
+  pointer-events: none;
+}
+
+#settingsPage .settings-group > *,
+#editPage .editor-panel > *,
+#schedulePage .schedule-panel > *,
+#todayPage .today-panel > *,
+#courseList .timetable-grid > * {
+  position: relative;
+  z-index: 1;
+}
+
+.page.active {
+  animation: page-enter .16s cubic-bezier(.2, .8, .2, 1) both !important;
+}
+
+#courseList .timetable-course {
+  animation: none !important;
+  transition: border-color .14s ease, box-shadow .14s ease !important;
+  will-change: auto !important;
+}
+
+button,
+.file-button,
+.app-tabs button {
+  transition: transform .12s cubic-bezier(.2, .8, .2, 1), background-color .12s ease, border-color .12s ease !important;
+}
+
+button:active,
+.file-button:active,
+.app-tabs button:active {
+  transform: scale(.98) !important;
+}
+
+#courseList .timetable-course::before,
+#schedulePage .course-list > .course-card::before {
+  opacity: .16 !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, calc(var(--course-color-alpha) * .045)), transparent 56%) !important;
+}
+
+#courseList .timetable-course:hover::before,
+#schedulePage .course-list > .course-card:hover::before {
+  opacity: .24 !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, calc(var(--course-color-alpha) * .075)), transparent 58%) !important;
+}
+
+/* Product-style polish: quiet navigation and low-cost motion. */
+.app-tabs {
+  gap: 4px;
+  padding: 5px !important;
+  border-color: rgba(83, 101, 118, calc(.18 + var(--card-opacity) * .12)) !important;
+  background: rgba(255, 255, 255, calc(var(--card-opacity) * .30)) !important;
+  box-shadow: 0 8px 20px rgba(31, 35, 40, calc(var(--card-opacity) * .08)) !important;
+  backdrop-filter: blur(var(--glass-blur)) saturate(116%) brightness(1.01) !important;
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(116%) brightness(1.01) !important;
+}
+
+.app-tabs button {
+  border-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.app-tabs button.active {
+  color: var(--ink) !important;
+  background: rgba(255, 255, 255, calc(.18 + var(--card-opacity) * .34)) !important;
+  box-shadow: 0 4px 12px rgba(31, 35, 40, calc(var(--card-opacity) * .08)) !important;
+}
+
+#settingsPage input,
+#settingsPage select,
+#settingsPage textarea,
+#settingsPage button {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+@media (max-width: 640px) {
+  .page.active {
+    animation-duration: .12s !important;
+  }
+
+  #todayPage .today-panel,
+  #schedulePage .schedule-panel,
+  #editPage .editor-panel,
+  #settingsPage .settings-panel,
+  #courseList .timetable-grid,
+  .app-tabs {
+    backdrop-filter: blur(var(--glass-blur)) saturate(112%) brightness(1.01) !important;
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(112%) brightness(1.01) !important;
+  }
+}
+
+/* Absolute final surface system: page cards and setting groups share one blur/opacity style. */
+:root {
+  --main-card-bg: var(--card-alpha-panel);
+  --main-card-line: calc(.24 + var(--card-opacity) * .16);
+  --section-card-bg: calc(var(--card-opacity) * .22);
+  --section-card-line: calc(.18 + var(--card-opacity) * .12);
+  --control-card-bg: calc(var(--card-opacity) * .08);
+  --control-card-line: calc(.08 + var(--card-opacity) * .08);
+}
+
+#todayPage .today-panel,
+#schedulePage .schedule-panel,
+#editPage .editor-panel,
+#settingsPage .settings-panel,
+#courseList .timetable-grid {
+  border: 1px solid rgba(76, 94, 112, var(--main-card-line)) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, calc(var(--card-opacity) * .07)), rgba(255, 255, 255, calc(var(--card-opacity) * .025))),
+    rgba(255, 255, 255, var(--main-card-bg)) !important;
+  box-shadow:
+    0 10px 24px rgba(31, 35, 40, calc(var(--card-opacity) * .075)),
+    inset 0 1px 0 rgba(255, 255, 255, calc(var(--card-opacity) * .08)) !important;
+  backdrop-filter: blur(var(--glass-blur)) saturate(120%) brightness(1.01) !important;
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(120%) brightness(1.01) !important;
+}
+
+#todayPage .today-course,
+#schedulePage .course-list > .course-card,
+#editPage .schedule-card,
+#settingsPage .settings-group {
+  position: relative !important;
+  isolation: isolate;
+  overflow: hidden !important;
+  border: 1px solid rgba(76, 94, 112, var(--section-card-line)) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, calc(var(--card-opacity) * .035)), rgba(255, 255, 255, calc(var(--card-opacity) * .012))),
+    rgba(255, 255, 255, var(--section-card-bg)) !important;
+  box-shadow:
+    0 6px 16px rgba(31, 35, 40, calc(var(--card-opacity) * .045)),
+    inset 0 1px 0 rgba(255, 255, 255, calc(var(--card-opacity) * .045)) !important;
+  backdrop-filter: blur(var(--field-blur)) saturate(112%) brightness(1.005) !important;
+  -webkit-backdrop-filter: blur(var(--field-blur)) saturate(112%) brightness(1.005) !important;
+}
+
+#settingsPage .settings-panel {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, calc(var(--card-opacity) * .07)), rgba(255, 255, 255, calc(var(--card-opacity) * .025))),
+    rgba(255, 255, 255, var(--main-card-bg)) !important;
+}
+
+#settingsPage .settings-stack > .field,
+#settingsPage .settings-stack > .form-row,
+#settingsPage .settings-stack > .settings-actions,
+#settingsPage .settings-stack > .file-button,
+#settingsPage .settings-stack > .settings-fieldset,
+#settingsPage .settings-stack > fieldset,
+.settings-fieldset label,
+#visibleFields label,
+.hint {
+  border: 1px solid rgba(76, 94, 112, var(--control-card-line)) !important;
+  background: rgba(255, 255, 255, var(--control-card-bg)) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+#todayPage .today-panel::before,
+#todayPage .today-course::before,
+#schedulePage .schedule-panel::before,
+#schedulePage .course-list > .course-card::before,
+#editPage .editor-panel::before,
+#editPage .schedule-card::before,
+#settingsPage .settings-panel::before,
+#settingsPage .settings-group::before,
+#courseList .timetable-grid::before {
+  opacity: calc(var(--card-opacity) * .012) !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.035), transparent 44%) !important;
+}
+
+#todayPage .today-panel::after,
+#todayPage .today-course::after,
+#schedulePage .schedule-panel::after,
+#schedulePage .course-list > .course-card::after,
+#editPage .editor-panel::after,
+#editPage .schedule-card::after,
+#settingsPage .settings-panel::after,
+#settingsPage .settings-group::after,
+#courseList .timetable-grid::after {
+  content: none !important;
+}
+
+@media (max-width: 640px) {
+  #todayPage .today-course,
+  #schedulePage .course-list > .course-card,
+  #editPage .schedule-card,
+  #settingsPage .settings-group {
+    backdrop-filter: blur(var(--mobile-field-blur)) saturate(108%) brightness(1.005) !important;
+    -webkit-backdrop-filter: blur(var(--mobile-field-blur)) saturate(108%) brightness(1.005) !important;
+  }
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  #todayPage .today-panel,
+  #schedulePage .schedule-panel,
+  #editPage .editor-panel,
+  #settingsPage .settings-panel,
+  #courseList .timetable-grid,
+  #todayPage .today-course,
+  #schedulePage .course-list > .course-card,
+  #editPage .schedule-card {
+    background: rgba(255, 255, 255, calc(var(--card-opacity) * .34)) !important;
+  }
+
+  #settingsPage .settings-group {
+    background: rgba(255, 255, 255, calc(var(--card-opacity) * .18)) !important;
+  }
+}
+
+/* Final blur pass: only real cards blur; controls stay quiet. */
+:root {
+  --nav-height: 64px;
+  --nav-bottom-gap: 14px;
+  --main-surface-alpha: calc(var(--card-opacity) * .46);
+  --section-surface-alpha: calc(var(--card-opacity) * .24);
+  --quiet-line-alpha: calc(var(--card-opacity) * .14);
+  --floating-nav-bg: calc(var(--card-opacity) * .38);
+  --floating-nav-active-bg: calc(.16 + var(--card-opacity) * .30);
+}
+
+.shell {
+  padding-bottom: calc(var(--nav-height) + var(--nav-bottom-gap) + 30px + env(safe-area-inset-bottom)) !important;
+}
+
+html {
+  scroll-padding-bottom: calc(var(--nav-height) + var(--nav-bottom-gap) + 38px + env(safe-area-inset-bottom));
+}
+
+.hero,
+.panel,
+.card,
+#todayPage .today-panel,
+#schedulePage .schedule-panel,
+#editPage .editor-panel,
+#settingsPage .settings-panel,
+#courseList .timetable-grid,
+.app-tabs {
+  position: relative !important;
+  isolation: isolate;
+  overflow: hidden !important;
+  border: 1px solid rgba(76, 94, 112, var(--quiet-line-alpha)) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, calc(var(--card-opacity) * .045)), rgba(255, 255, 255, calc(var(--card-opacity) * .014))),
+    rgba(255, 255, 255, var(--main-surface-alpha)) !important;
+  box-shadow:
+    0 10px 26px rgba(31, 35, 40, calc(var(--card-opacity) * .06)),
+    inset 0 1px 0 rgba(255, 255, 255, calc(var(--card-opacity) * .045)) !important;
+  backdrop-filter: blur(var(--glass-blur)) saturate(118%) brightness(1.01) !important;
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(118%) brightness(1.01) !important;
+}
+
+.daily-poem,
+.today-time,
+.week-chip,
+.today-course,
+#courseList .timetable-course,
+#schedulePage .course-list > .course-card,
+#editPage .schedule-card,
+#settingsPage .settings-group {
+  position: relative !important;
+  isolation: isolate;
+  overflow: hidden !important;
+  border: 0 !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, calc(var(--card-opacity) * .026)), transparent),
+    rgba(255, 255, 255, var(--section-surface-alpha)) !important;
+  box-shadow:
+    0 6px 16px rgba(31, 35, 40, calc(var(--card-opacity) * .035)),
+    inset 0 1px 0 rgba(255, 255, 255, calc(var(--card-opacity) * .035)) !important;
+  backdrop-filter: blur(var(--glass-blur)) saturate(112%) brightness(1.005) !important;
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(112%) brightness(1.005) !important;
+}
+
+.hero::before,
+.panel::before,
+.card::before,
+.today-course::before,
+#courseList .timetable-course::before,
+#settingsPage .settings-panel::before,
+#settingsPage .settings-group::before,
+#courseList .timetable-grid::before,
+.app-tabs::before {
+  opacity: calc(var(--card-opacity) * .018) !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.05), transparent 48%) !important;
+}
+
+.hero::after,
+.daily-poem::after,
+.today-time::after,
+.week-chip::after,
+.panel::after,
+.card::after,
+.today-course::after,
+#courseList .timetable-course::after,
+#settingsPage .settings-panel::after,
+#settingsPage .settings-group::after,
+#courseList .timetable-grid::after,
+.app-tabs::after {
+  content: none !important;
+}
+
+#settingsPage .settings-stack > .field,
+#settingsPage .settings-stack > .form-row,
+#settingsPage .settings-stack > .settings-actions,
+#settingsPage .settings-stack > .file-button,
+#settingsPage .settings-stack > .settings-fieldset,
+#settingsPage .settings-stack > fieldset,
+.settings-fieldset label,
+#visibleFields label,
+#settingsPage input,
+#settingsPage select,
+#settingsPage textarea,
+#settingsPage button,
+.hint {
+  border-color: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+#settingsPage .settings-stack > .field,
+#settingsPage .settings-stack > .form-row,
+#settingsPage .settings-stack > .settings-actions,
+#settingsPage .settings-stack > .file-button,
+#settingsPage .settings-stack > .settings-fieldset,
+#settingsPage .settings-stack > fieldset,
+.hint {
+  background: rgba(255, 255, 255, calc(var(--card-opacity) * .10)) !important;
+}
+
+.app-tabs {
+  position: fixed !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: calc(var(--nav-bottom-gap) + env(safe-area-inset-bottom));
+  top: auto !important;
+  z-index: 80;
+  width: min(430px, calc(100vw - 28px));
+  min-height: var(--nav-height);
+  margin: 0 auto !important;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: center;
+  gap: 5px;
+  padding: 6px !important;
+  border-radius: 22px !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, calc(var(--card-opacity) * .08)), rgba(255, 255, 255, calc(var(--card-opacity) * .02))),
+    rgba(255, 255, 255, var(--floating-nav-bg)) !important;
+  box-shadow:
+    0 16px 38px rgba(31, 35, 40, calc(.08 + var(--card-opacity) * .10)),
+    inset 0 1px 0 rgba(255, 255, 255, calc(var(--card-opacity) * .10)) !important;
+  transform: translateX(-50%);
+  will-change: auto;
+}
+
+.app-tabs button {
+  min-width: 0;
+  min-height: 50px;
+  border: 0 !important;
+  border-radius: 16px !important;
+  padding: 7px 6px !important;
+  color: var(--ink-soft) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-weight: 750;
+  transform: translateZ(0);
+  transition:
+    transform .16s cubic-bezier(.2, .8, .2, 1),
+    background-color .16s ease,
+    color .16s ease !important;
+}
+
+.app-tabs button.active {
+  color: var(--ink) !important;
+  background: rgba(255, 255, 255, var(--floating-nav-active-bg)) !important;
+  box-shadow:
+    0 6px 16px rgba(31, 35, 40, calc(var(--card-opacity) * .08)),
+    inset 0 1px 0 rgba(255, 255, 255, calc(var(--card-opacity) * .14)) !important;
+}
+
+.app-tabs button[aria-current="page"] {
+  color: var(--ink) !important;
+  background: rgba(255, 255, 255, var(--floating-nav-active-bg)) !important;
+}
+
+.app-tabs button:active {
+  transform: scale(.96) translateZ(0) !important;
+}
+
+@media (max-width: 640px) {
+  :root {
+    --nav-height: 58px;
+    --nav-bottom-gap: 10px;
+  }
+
+  .shell {
+    width: min(100% - 18px, 1180px) !important;
+    padding-bottom: calc(var(--nav-height) + var(--nav-bottom-gap) + 24px + env(safe-area-inset-bottom)) !important;
+  }
+
+  .hero,
+  .panel,
+  #todayPage .today-panel,
+  #schedulePage .schedule-panel,
+  #editPage .editor-panel,
+  #settingsPage .settings-panel,
+  #courseList .timetable-grid,
+  .app-tabs {
+    backdrop-filter: blur(var(--glass-blur)) saturate(112%) brightness(1.01) !important;
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(112%) brightness(1.01) !important;
+  }
+
+  .daily-poem,
+  .today-time,
+  .week-chip,
+  .today-course,
+  #courseList .timetable-course,
+  #schedulePage .course-list > .course-card,
+  #editPage .schedule-card,
+  #settingsPage .settings-group {
+    backdrop-filter: blur(var(--glass-blur)) saturate(108%) brightness(1.005) !important;
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(108%) brightness(1.005) !important;
+  }
+
+  .app-tabs {
+    width: min(390px, calc(100vw - 20px));
+    left: 50% !important;
+    right: auto !important;
+    border-radius: 20px !important;
+    padding: 5px !important;
+  }
+
+  .app-tabs button {
+    min-height: 48px;
+    border-radius: 15px !important;
+    font-size: 13px;
+  }
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .hero,
+  .daily-poem,
+  .today-time,
+  .week-chip,
+  .panel,
+  .card,
+  .today-course,
+  #courseList .timetable-course,
+  #settingsPage .settings-panel,
+  #settingsPage .settings-group,
+  #courseList .timetable-grid,
+  .app-tabs {
+    background: rgba(255, 255, 255, calc(var(--card-opacity) * .26)) !important;
+  }
+}
+
+#courseList .timetable-course {
+  border: 0 !important;
+}
+
+#courseList .timetable-course:nth-of-type(5n + 1) {
+  background: rgba(170, 213, 244, var(--course-surface-alpha)) !important;
+}
+
+#courseList .timetable-course:nth-of-type(5n + 2) {
+  background: rgba(177, 228, 190, var(--course-surface-alpha)) !important;
+}
+
+#courseList .timetable-course:nth-of-type(5n + 3) {
+  background: rgba(246, 203, 166, var(--course-surface-alpha)) !important;
+}
+
+#courseList .timetable-course:nth-of-type(5n + 4) {
+  background: rgba(203, 191, 236, var(--course-surface-alpha)) !important;
+}
+
+#courseList .timetable-course:nth-of-type(5n) {
+  background: rgba(244, 225, 140, var(--course-surface-alpha)) !important;
+}
+
+/* Header content is not a separate card: no extra boxes around date, poem, week, or switch buttons. */
+.hero .eyebrow,
+.hero .daily-poem,
+.hero .week-switcher,
+.hero .week-chip,
+.hero .icon-button,
+.hero .today-jump {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.hero .daily-poem,
+.hero .week-chip {
+  padding-inline: 0 !important;
+}
+
+.hero .icon-button,
+.hero .today-jump {
+  color: var(--ink) !important;
+}
+
+/* Blur and opacity now share the same real-card scope. */
+.hero,
+#todayPage .today-panel,
+#schedulePage .schedule-panel,
+#editPage .editor-panel,
+#settingsPage .settings-panel,
+#settingsPage .settings-group,
+#courseList .timetable-grid,
+#courseList .timetable-course,
+.today-course,
+.app-tabs {
+  backdrop-filter: blur(var(--glass-blur)) saturate(116%) brightness(1.01) !important;
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(116%) brightness(1.01) !important;
+}
+
+/* Final visibility fix: same blur scope as card opacity, without adding extra boxes. */
+#todayPage .today-panel,
+#schedulePage .schedule-panel,
+#editPage .editor-panel,
+#settingsPage .settings-panel,
+#courseList .timetable-grid,
+.app-tabs {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, calc(var(--card-opacity) * .026)), transparent),
+    rgba(255, 255, 255, calc(var(--card-opacity) * .32)) !important;
+  backdrop-filter: blur(var(--glass-blur)) saturate(118%) brightness(1.01) !important;
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(118%) brightness(1.01) !important;
+}
+
+#settingsPage .settings-group,
+.today-course,
+#courseList .timetable-course {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, calc(var(--card-opacity) * .018)), transparent),
+    rgba(255, 255, 255, calc(var(--card-opacity) * .16)) !important;
+  backdrop-filter: blur(var(--glass-blur)) saturate(112%) brightness(1.005) !important;
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(112%) brightness(1.005) !important;
+}
+
+#courseList .timetable-course:nth-of-type(5n + 1) {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,calc(var(--card-opacity) * .018)), transparent),
+    rgba(170, 213, 244, var(--course-surface-alpha)) !important;
+}
+
+#courseList .timetable-course:nth-of-type(5n + 2) {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,calc(var(--card-opacity) * .018)), transparent),
+    rgba(177, 228, 190, var(--course-surface-alpha)) !important;
+}
+
+#courseList .timetable-course:nth-of-type(5n + 3) {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,calc(var(--card-opacity) * .018)), transparent),
+    rgba(246, 203, 166, var(--course-surface-alpha)) !important;
+}
+
+#courseList .timetable-course:nth-of-type(5n + 4) {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,calc(var(--card-opacity) * .018)), transparent),
+    rgba(203, 191, 236, var(--course-surface-alpha)) !important;
+}
+
+#courseList .timetable-course:nth-of-type(5n) {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,calc(var(--card-opacity) * .018)), transparent),
+    rgba(244, 225, 140, var(--course-surface-alpha)) !important;
+}
+
+#courseList .timetable-header,
+#courseList .timetable-cell,
+#courseList .time-cell {
+  border-color: rgba(255, 255, 255, calc(var(--card-opacity) * .16)) !important;
+  background: rgba(255, 255, 255, calc(var(--card-opacity) * .07)) !important;
+  box-shadow: none !important;
+}
+
+#courseList .timetable-header {
+  backdrop-filter: blur(var(--glass-blur)) saturate(110%) brightness(1.005) !important;
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(110%) brightness(1.005) !important;
+}
+
+/* Correct final scope: blur settings cards, leave timetable cells and course blocks alone. */
+#courseList .timetable-header,
+#courseList .timetable-cell {
+  border: 1px solid rgba(255, 255, 255, .58) !important;
+  background: rgba(255, 255, 255, .34) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .58) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+#courseList .time-cell {
+  background: rgba(255, 255, 255, .34) !important;
+}
+
+#courseList .timetable-course {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+#courseList .timetable-grid {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+#courseList .timetable-course:nth-of-type(5n + 1) {
+  background: rgba(170, 213, 244, var(--course-color-alpha)) !important;
+}
+
+#courseList .timetable-course:nth-of-type(5n + 2) {
+  background: rgba(177, 228, 190, var(--course-color-alpha)) !important;
+}
+
+#courseList .timetable-course:nth-of-type(5n + 3) {
+  background: rgba(246, 203, 166, var(--course-color-alpha)) !important;
+}
+
+#courseList .timetable-course:nth-of-type(5n + 4) {
+  background: rgba(203, 191, 236, var(--course-color-alpha)) !important;
+}
+
+#courseList .timetable-course:nth-of-type(5n) {
+  background: rgba(244, 225, 140, var(--course-color-alpha)) !important;
+}
+
+#settingsPage .settings-panel {
+  position: relative !important;
+  isolation: auto !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(76, 94, 112, calc(var(--card-opacity) * .18)) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, calc(var(--card-opacity) * .018)), transparent 58%),
+    rgba(255, 255, 255, calc(var(--card-opacity) * .10)) !important;
+  box-shadow:
+    0 12px 30px rgba(31, 35, 40, calc(var(--card-opacity) * .055)),
+    inset 0 1px 0 rgba(255, 255, 255, calc(var(--card-opacity) * .045)) !important;
+  backdrop-filter: blur(var(--glass-blur)) saturate(132%) brightness(1.01) !important;
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(132%) brightness(1.01) !important;
+}
+
+#settingsPage .settings-group {
+  position: relative !important;
+  isolation: auto !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(76, 94, 112, calc(var(--card-opacity) * .14)) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, calc(var(--card-opacity) * .014)), transparent 56%),
+    rgba(255, 255, 255, calc(var(--card-opacity) * .08)) !important;
+  box-shadow:
+    0 8px 20px rgba(31, 35, 40, calc(var(--card-opacity) * .04)),
+    inset 0 1px 0 rgba(255, 255, 255, calc(var(--card-opacity) * .04)) !important;
+  backdrop-filter: blur(var(--glass-blur)) saturate(130%) brightness(1.01) !important;
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(130%) brightness(1.01) !important;
+}
+
+#settingsPage .settings-panel::before,
+#settingsPage .settings-group::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: rgba(255, 255, 255, calc(var(--card-opacity) * .018)) !important;
+  opacity: 1 !important;
+  backdrop-filter: blur(var(--glass-blur)) saturate(132%) brightness(1.01) !important;
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(132%) brightness(1.01) !important;
+}
+
+#settingsPage .settings-panel::after,
+#settingsPage .settings-group::after {
+  content: none !important;
+}
+
+#settingsPage .settings-panel > *,
+#settingsPage .settings-group > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Final today overview frame. */
+#todayCourseList,
+.today-course-list {
+  position: relative !important;
+  isolation: isolate !important;
+  overflow: hidden !important;
+  padding: 12px !important;
+  border: 1px solid rgba(255, 255, 255, calc(var(--card-opacity) * .46)) !important;
+  border-radius: var(--radius-lg) !important;
+  background: rgba(255, 255, 255, calc(var(--card-opacity) * .34)) !important;
+  box-shadow:
+    0 16px 44px rgba(34, 59, 76, calc(var(--card-opacity) * .16)),
+    inset 0 1px 0 rgba(255, 255, 255, calc(var(--card-opacity) * .50)) !important;
+  backdrop-filter: blur(var(--blur)) saturate(180%) brightness(1.04) !important;
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(180%) brightness(1.04) !important;
+}
+
+#todayCourseList::before,
+.today-course-list::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, .30), transparent 34%, rgba(255, 255, 255, .08)),
+    linear-gradient(180deg, rgba(255, 255, 255, .14), transparent 44%) !important;
+  opacity: calc(var(--card-opacity) * .36) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+#todayCourseList::after,
+.today-course-list::after {
+  content: none !important;
+}
+
+#todayCourseList > *,
+.today-course-list > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Latest controls: data buttons and custom time editor. */
+#exportScheduleBtn {
+  color: var(--ink) !important;
+  background: rgba(255, 255, 255, calc(.20 + var(--card-opacity) * .46)) !important;
+}
+
+#timeSlotsText {
+  min-height: 168px;
+  resize: vertical;
+  font-family: "SF Mono", "Cascadia Mono", Consolas, monospace;
+  line-height: 1.6;
+}
+
+.compact-actions {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* Absolute final authority: big cards consume blur; opacity only controls tint. */
+.data-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.data-actions > button,
+.data-actions > .file-button {
+  width: 100%;
+  min-width: 0;
+}
+
+.data-file-button::after {
+  content: none !important;
+}
+
+#todayPage .today-panel,
+#schedulePage .schedule-panel,
+#editPage .editor-panel,
+#settingsPage .settings-panel,
+#settingsPage .settings-group,
+#todayCourseList,
+.today-course-list {
+  position: relative !important;
+  isolation: isolate !important;
+  overflow: hidden !important;
+  background: rgba(255, 255, 255, calc(var(--card-opacity) * .34)) !important;
+  border: 1px solid rgba(255, 255, 255, calc(var(--card-opacity) * .46)) !important;
+  box-shadow:
+    0 16px 44px rgba(34, 59, 76, calc(var(--card-opacity) * .16)),
+    inset 0 1px 0 rgba(255, 255, 255, calc(var(--card-opacity) * .50)) !important;
+  backdrop-filter: blur(var(--blur)) saturate(180%) brightness(1.04) !important;
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(180%) brightness(1.04) !important;
+}
+
+#todayCourseList,
+.today-course-list {
+  padding: 12px !important;
+  border-radius: var(--radius-lg) !important;
+}
+
+#todayPage .today-panel::before,
+#schedulePage .schedule-panel::before,
+#editPage .editor-panel::before,
+#settingsPage .settings-panel::before,
+#settingsPage .settings-group::before,
+#todayCourseList::before,
+.today-course-list::before {
+  content: "" !important;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, .30), transparent 34%, rgba(255, 255, 255, .08)),
+    linear-gradient(180deg, rgba(255, 255, 255, .14), transparent 44%) !important;
+  opacity: calc(var(--card-opacity) * .36) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+#todayPage .today-panel::after,
+#schedulePage .schedule-panel::after,
+#editPage .editor-panel::after,
+#settingsPage .settings-panel::after,
+#settingsPage .settings-group::after,
+#todayCourseList::after,
+.today-course-list::after {
+  content: none !important;
+}
+
+#todayPage .today-panel > *,
+#schedulePage .schedule-panel > *,
+#editPage .editor-panel > *,
+#settingsPage .settings-panel > *,
+#settingsPage .settings-group > *,
+#todayCourseList > *,
+.today-course-list > * {
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 640px) {
+  .data-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Absolute final authority: big cards consume blur; opacity only controls tint. */
+.data-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.data-actions > button,
+.data-actions > .file-button {
+  width: 100%;
+  min-width: 0;
+}
+
+.data-file-button::after {
+  content: none !important;
+}
+
+#todayPage .today-panel,
+#schedulePage .schedule-panel,
+#editPage .editor-panel,
+#settingsPage .settings-panel,
+#settingsPage .settings-group,
+#todayCourseList,
+.today-course-list {
+  position: relative !important;
+  isolation: isolate !important;
+  overflow: hidden !important;
+  background: rgba(255, 255, 255, calc(var(--card-opacity) * .34)) !important;
+  border: 1px solid rgba(255, 255, 255, calc(var(--card-opacity) * .46)) !important;
+  box-shadow:
+    0 16px 44px rgba(34, 59, 76, calc(var(--card-opacity) * .16)),
+    inset 0 1px 0 rgba(255, 255, 255, calc(var(--card-opacity) * .50)) !important;
+  backdrop-filter: blur(var(--blur)) saturate(180%) brightness(1.04) !important;
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(180%) brightness(1.04) !important;
+}
+
+#todayCourseList,
+.today-course-list {
+  padding: 12px !important;
+  border-radius: var(--radius-lg) !important;
+}
+
+#todayPage .today-panel::before,
+#schedulePage .schedule-panel::before,
+#editPage .editor-panel::before,
+#settingsPage .settings-panel::before,
+#settingsPage .settings-group::before,
+#todayCourseList::before,
+.today-course-list::before {
+  content: "" !important;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, .30), transparent 34%, rgba(255, 255, 255, .08)),
+    linear-gradient(180deg, rgba(255, 255, 255, .14), transparent 44%) !important;
+  opacity: calc(var(--card-opacity) * .36) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+#todayPage .today-panel::after,
+#schedulePage .schedule-panel::after,
+#editPage .editor-panel::after,
+#settingsPage .settings-panel::after,
+#settingsPage .settings-group::after,
+#todayCourseList::after,
+.today-course-list::after {
+  content: none !important;
+}
+
+#todayPage .today-panel > *,
+#schedulePage .schedule-panel > *,
+#editPage .editor-panel > *,
+#settingsPage .settings-panel > *,
+#settingsPage .settings-group > *,
+#todayCourseList > *,
+.today-course-list > * {
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 640px) {
+  .data-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Unified data controls and final glass scope. */
+.data-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.data-actions > button,
+.data-actions > .file-button {
+  width: 100%;
+  min-width: 0;
+}
+
+.data-file-button::after {
+  content: none !important;
+}
+
+#todayPage .today-panel,
+#schedulePage .schedule-panel,
+#editPage .editor-panel,
+#settingsPage .settings-panel,
+#settingsPage .settings-group,
+#todayCourseList,
+.today-course-list {
+  position: relative !important;
+  isolation: isolate !important;
+  overflow: hidden !important;
+  background: rgba(255, 255, 255, calc(var(--card-opacity) * .34)) !important;
+  border: 1px solid rgba(255, 255, 255, calc(var(--card-opacity) * .46)) !important;
+  box-shadow:
+    0 16px 44px rgba(34, 59, 76, calc(var(--card-opacity) * .16)),
+    inset 0 1px 0 rgba(255, 255, 255, calc(var(--card-opacity) * .50)) !important;
+  backdrop-filter: blur(var(--blur)) saturate(180%) brightness(1.04) !important;
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(180%) brightness(1.04) !important;
+}
+
+#todayCourseList,
+.today-course-list {
+  padding: 12px !important;
+  border-radius: var(--radius-lg) !important;
+}
+
+#todayPage .today-panel::before,
+#schedulePage .schedule-panel::before,
+#editPage .editor-panel::before,
+#settingsPage .settings-panel::before,
+#settingsPage .settings-group::before,
+#todayCourseList::before,
+.today-course-list::before {
+  content: "" !important;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, .32), transparent 34%, rgba(255, 255, 255, .10)),
+    linear-gradient(180deg, rgba(255, 255, 255, .18), transparent 44%) !important;
+  opacity: calc(var(--card-opacity) * .42) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+#todayPage .today-panel::after,
+#schedulePage .schedule-panel::after,
+#editPage .editor-panel::after,
+#settingsPage .settings-panel::after,
+#settingsPage .settings-group::after,
+#todayCourseList::after,
+.today-course-list::after {
+  content: none !important;
+}
+
+#todayPage .today-panel > *,
+#schedulePage .schedule-panel > *,
+#editPage .editor-panel > *,
+#settingsPage .settings-panel > *,
+#settingsPage .settings-group > *,
+#todayCourseList > *,
+.today-course-list > * {
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 640px) {
+  .data-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Final today overview frame. */
+#todayCourseList,
+.today-course-list {
+  position: relative !important;
+  isolation: isolate !important;
+  overflow: hidden !important;
+  padding: 12px !important;
+  border: 1px solid rgba(255, 255, 255, calc(.20 + var(--card-opacity) * .30)) !important;
+  border-radius: var(--radius-lg) !important;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(255, 255, 255, calc(var(--card-opacity) * .18)), transparent 42%),
+    rgba(255, 255, 255, calc(var(--card-opacity) * .24)) !important;
+  box-shadow:
+    0 10px 28px rgba(40, 67, 86, .10),
+    inset 0 1px 0 rgba(255, 255, 255, calc(.16 + var(--card-opacity) * .34)) !important;
+  backdrop-filter: blur(var(--blur)) saturate(175%) brightness(1.04) !important;
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(175%) brightness(1.04) !important;
+}
+
+#todayCourseList::before,
+.today-course-list::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255, 255, 255, .22), transparent 38%, rgba(255, 255, 255, .08)) !important;
+  opacity: calc(.14 + var(--card-opacity) * .28) !important;
+}
+
+#todayCourseList::after,
+.today-course-list::after {
+  content: none !important;
+}
+
+#todayCourseList > *,
+.today-course-list > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Today overview list gets its own framed glass surface. */
+#todayCourseList,
+.today-course-list {
+  position: relative !important;
+  isolation: isolate !important;
+  overflow: hidden !important;
+  padding: 12px !important;
+  border: 1px solid rgba(255, 255, 255, calc(.20 + var(--card-opacity) * .30)) !important;
+  border-radius: var(--radius-lg) !important;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(255, 255, 255, calc(var(--card-opacity) * .18)), transparent 42%),
+    rgba(255, 255, 255, calc(var(--card-opacity) * .24)) !important;
+  box-shadow:
+    0 10px 28px rgba(40, 67, 86, .10),
+    inset 0 1px 0 rgba(255, 255, 255, calc(.16 + var(--card-opacity) * .34)) !important;
+  backdrop-filter: blur(var(--blur)) saturate(175%) brightness(1.04) !important;
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(175%) brightness(1.04) !important;
+}
+
+#todayCourseList::before,
+.today-course-list::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255, 255, 255, .22), transparent 38%, rgba(255, 255, 255, .08)) !important;
+  opacity: calc(.14 + var(--card-opacity) * .28) !important;
+}
+
+#todayCourseList::after,
+.today-course-list::after {
+  content: none !important;
+}
+
+#todayCourseList > *,
+.today-course-list > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Extend blur strength to secondary cards without touching timetable cells or course blocks. */
+.card,
+.today-course,
+#schedulePage .course-list > .course-card,
+#editPage .schedule-card,
+#settingsPage .settings-stack > .field,
+#settingsPage .settings-stack > .form-row,
+#settingsPage .settings-stack > .settings-actions,
+#settingsPage .settings-stack > .file-button,
+#settingsPage .settings-stack > .settings-fieldset,
+#settingsPage .settings-stack > fieldset,
+.settings-fieldset label,
+#visibleFields label,
+.hint {
+  position: relative !important;
+  isolation: isolate !important;
+  overflow: hidden !important;
+  border-color: rgba(255, 255, 255, calc(.18 + var(--card-opacity) * .24)) !important;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(255, 255, 255, calc(var(--card-opacity) * .16)), transparent 42%),
+    rgba(255, 255, 255, calc(var(--card-opacity) * .30)) !important;
+  backdrop-filter: blur(var(--blur)) saturate(165%) brightness(1.04) !important;
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(165%) brightness(1.04) !important;
+}
+
+.card::before,
+.today-course::before,
+#schedulePage .course-list > .course-card::before,
+#editPage .schedule-card::before,
+#settingsPage .settings-stack > .field::before,
+#settingsPage .settings-stack > .form-row::before,
+#settingsPage .settings-stack > .settings-actions::before,
+#settingsPage .settings-stack > .file-button::before,
+#settingsPage .settings-stack > .settings-fieldset::before,
+#settingsPage .settings-stack > fieldset::before,
+.settings-fieldset label::before,
+#visibleFields label::before,
+.hint::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255, 255, 255, .20), transparent 38%, rgba(255, 255, 255, .08)) !important;
+  opacity: calc(.14 + var(--card-opacity) * .28) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.card::after,
+.today-course::after,
+#schedulePage .course-list > .course-card::after,
+#editPage .schedule-card::after,
+#settingsPage .settings-stack > .field::after,
+#settingsPage .settings-stack > .form-row::after,
+#settingsPage .settings-stack > .settings-actions::after,
+#settingsPage .settings-stack > .file-button::after,
+#settingsPage .settings-stack > .settings-fieldset::after,
+#settingsPage .settings-stack > fieldset::after,
+.settings-fieldset label::after,
+#visibleFields label::after,
+.hint::after {
+  content: none !important;
+}
+
+.card > *,
+.today-course > *,
+#schedulePage .course-list > .course-card > *,
+#editPage .schedule-card > *,
+#settingsPage .settings-stack > .field > *,
+#settingsPage .settings-stack > .form-row > *,
+#settingsPage .settings-stack > .settings-actions > *,
+#settingsPage .settings-stack > .file-button > *,
+#settingsPage .settings-stack > .settings-fieldset > *,
+#settingsPage .settings-stack > fieldset > *,
+.settings-fieldset label > *,
+#visibleFields label > *,
+.hint > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Absolute final glass scope: keep the page backdrop visible, then blur only large cards. */
+html,
+body {
+  background: transparent !important;
+}
+
+body::before {
+  content: "";
+  display: block !important;
+  position: fixed;
+  inset: 0;
+  z-index: -4;
+  pointer-events: none;
+  background:
+    linear-gradient(rgba(255, 255, 255, .20) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, .18) 1px, transparent 1px),
+    radial-gradient(circle at 12% 8%, rgba(117, 190, 225, .40), transparent 30%),
+    radial-gradient(circle at 86% 12%, rgba(245, 190, 112, .32), transparent 28%),
+    radial-gradient(circle at 76% 88%, rgba(112, 196, 166, .28), transparent 32%),
+    linear-gradient(135deg, #f6fbfd 0%, #dfeef4 48%, #f7f2e8 100%) !important;
+  background-size: 34px 34px, 34px 34px, auto, auto, auto, auto !important;
+}
+
+body::after {
+  content: "";
+  display: block !important;
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: rgba(255, 255, 255, calc(var(--page-overlay-alpha) * .35)) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.bg-layer {
+  z-index: -3 !important;
+  opacity: var(--bg-image-opacity) !important;
+  filter: saturate(1.08) contrast(1.02) !important;
+}
+
+body.has-custom-bg::before {
+  opacity: .20;
+}
+
+body.has-custom-bg::after {
+  background: rgba(255, 255, 255, calc(var(--page-overlay-alpha) * .18)) !important;
+}
+
+#todayPage .today-panel,
+#schedulePage .schedule-panel,
+#editPage .editor-panel,
+#settingsPage .settings-panel,
+#settingsPage .settings-group,
+.today-course,
+.app-tabs {
+  position: relative !important;
+  isolation: auto !important;
+  overflow: hidden !important;
+  border-color: rgba(255, 255, 255, .56) !important;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(255, 255, 255, var(--card-opacity)), transparent 42%),
+    rgba(255, 255, 255, var(--card-opacity)) !important;
+  box-shadow:
+    0 18px 56px rgba(40, 67, 86, .14),
+    inset 0 1px 0 rgba(255, 255, 255, .62) !important;
+  backdrop-filter: blur(var(--blur)) saturate(170%) brightness(1.01) !important;
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(170%) brightness(1.01) !important;
+}
+
+#todayPage .today-panel::before,
+#schedulePage .schedule-panel::before,
+#editPage .editor-panel::before,
+#settingsPage .settings-panel::before,
+#settingsPage .settings-group::before,
+.today-course::before,
+.app-tabs::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255, 255, 255, .62), transparent 36%, rgba(255, 255, 255, .18)) !important;
+  opacity: calc(var(--card-opacity) * .75) !important;
+}
+
+#todayPage .today-panel > *,
+#schedulePage .schedule-panel > *,
+#editPage .editor-panel > *,
+#settingsPage .settings-panel > *,
+#settingsPage .settings-group > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Backdrop filters sample correctly when pages are not kept on a transformed layer. */
+.page {
+  transform: none !important;
+}
+
+.page.active {
+  animation: page-fade .16s cubic-bezier(.2, .8, .2, 1) both !important;
+}
+
+@keyframes page-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+body.no-backdrop #todayPage .today-panel,
+body.no-backdrop #schedulePage .schedule-panel,
+body.no-backdrop #editPage .editor-panel,
+body.no-backdrop #settingsPage .settings-panel,
+body.no-backdrop #settingsPage .settings-group,
+body.no-backdrop .app-tabs {
+  background: rgba(255, 255, 255, calc(.48 + var(--card-opacity) * .28)) !important;
+  box-shadow:
+    0 12px 30px rgba(31, 35, 40, .10),
+    inset 0 1px 0 rgba(255, 255, 255, .38) !important;
+}
+
+/* Final separation: floating nav keeps its place; page cards own the blur setting. */
+.app-tabs {
+  position: fixed !important;
+  left: 50% !important;
+  right: auto !important;
+  top: auto !important;
+  bottom: calc(var(--nav-bottom-gap) + env(safe-area-inset-bottom)) !important;
+  z-index: 80 !important;
+  width: min(430px, calc(100vw - 28px)) !important;
+  min-height: var(--nav-height) !important;
+  transform: translateX(-50%) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, calc(var(--card-opacity) * .08)), rgba(255, 255, 255, calc(var(--card-opacity) * .02))),
+    rgba(255, 255, 255, var(--floating-nav-bg)) !important;
+  backdrop-filter: blur(var(--blur)) saturate(132%) brightness(1.01) !important;
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(132%) brightness(1.01) !important;
+}
+
+#todayPage .today-panel,
+#schedulePage .schedule-panel,
+#editPage .editor-panel,
+#settingsPage .settings-panel,
+#settingsPage .settings-group {
+  position: relative !important;
+  isolation: isolate !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(255, 255, 255, .56) !important;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(255, 255, 255, var(--card-opacity)), transparent 42%),
+    rgba(255, 255, 255, var(--card-opacity)) !important;
+  box-shadow:
+    0 18px 56px rgba(40, 67, 86, .14),
+    inset 0 1px 0 rgba(255, 255, 255, .62) !important;
+  backdrop-filter: blur(var(--blur)) saturate(170%) brightness(1.01) !important;
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(170%) brightness(1.01) !important;
+}
+
+#todayPage .today-panel::before,
+#schedulePage .schedule-panel::before,
+#editPage .editor-panel::before,
+#settingsPage .settings-panel::before,
+#settingsPage .settings-group::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255, 255, 255, .62), transparent 36%, rgba(255, 255, 255, .18)) !important;
+  opacity: calc(var(--card-opacity) * .75) !important;
+  backdrop-filter: blur(var(--blur)) saturate(170%) brightness(1.01) !important;
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(170%) brightness(1.01) !important;
+}
+
+#todayPage .today-panel::after,
+#schedulePage .schedule-panel::after,
+#editPage .editor-panel::after,
+#settingsPage .settings-panel::after,
+#settingsPage .settings-group::after {
+  content: none !important;
+}
+
+#todayPage .today-panel > *,
+#schedulePage .schedule-panel > *,
+#editPage .editor-panel > *,
+#settingsPage .settings-panel > *,
+#settingsPage .settings-group > * {
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 640px) {
+  .app-tabs {
+    width: min(390px, calc(100vw - 20px)) !important;
+    border-radius: 20px !important;
+    padding: 5px !important;
+  }
+}
+
+/* Deterministic card frost: blur strength affects the card layer without repainting the image inside it. */
+:root {
+  --card-frost-opacity: calc(.18 + var(--card-opacity) * .18);
+}
+
+#todayPage .today-panel,
+#schedulePage .schedule-panel,
+#editPage .editor-panel,
+#settingsPage .settings-panel,
+#settingsPage .settings-group {
+  isolation: isolate !important;
+  overflow: hidden !important;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(255, 255, 255, calc(var(--card-opacity) * .42)), transparent 42%),
+    rgba(255, 255, 255, calc(var(--card-opacity) * .38)) !important;
+  backdrop-filter: blur(var(--blur)) saturate(180%) brightness(1.06) !important;
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(180%) brightness(1.06) !important;
+}
+
+#todayPage .today-panel::after,
+#schedulePage .schedule-panel::after,
+#editPage .editor-panel::after,
+#settingsPage .settings-panel::after,
+#settingsPage .settings-group::after {
+  content: "" !important;
+  position: absolute;
+  inset: -28px;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(255, 255, 255, calc(var(--card-opacity) * .26)), transparent 42%),
+    linear-gradient(135deg, rgba(255, 255, 255, calc(var(--card-opacity) * .12)), rgba(255, 255, 255, calc(var(--card-opacity) * .04))) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  filter: none !important;
+  opacity: 1 !important;
+}
+
+#todayPage .today-panel::before,
+#schedulePage .schedule-panel::before,
+#editPage .editor-panel::before,
+#settingsPage .settings-panel::before,
+#settingsPage .settings-group::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, .42), transparent 36%, rgba(255, 255, 255, .12)),
+    rgba(255, 255, 255, calc(var(--card-opacity) * .10)) !important;
+  opacity: 1 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+#todayPage .today-panel > *,
+#schedulePage .schedule-panel > *,
+#editPage .editor-panel > *,
+#settingsPage .settings-panel > *,
+#settingsPage .settings-group > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* Final iOS glass correction: blur controls blur only, card opacity controls tint only. */
+#todayPage .today-panel,
+#schedulePage .schedule-panel,
+#editPage .editor-panel,
+#settingsPage .settings-panel,
+#settingsPage .settings-group {
+  position: relative !important;
+  isolation: isolate !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(255, 255, 255, calc(var(--card-opacity) * .46)) !important;
+  background: rgba(255, 255, 255, calc(var(--card-opacity) * .34)) !important;
+  box-shadow:
+    0 16px 44px rgba(34, 59, 76, calc(var(--card-opacity) * .16)),
+    inset 0 1px 0 rgba(255, 255, 255, calc(var(--card-opacity) * .50)) !important;
+  backdrop-filter: blur(var(--blur)) saturate(180%) brightness(1.04) !important;
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(180%) brightness(1.04) !important;
+}
+
+#todayPage .today-panel::after,
+#schedulePage .schedule-panel::after,
+#editPage .editor-panel::after,
+#settingsPage .settings-panel::after,
+#settingsPage .settings-group::after {
+  content: none !important;
+}
+
+#todayPage .today-panel::before,
+#schedulePage .schedule-panel::before,
+#editPage .editor-panel::before,
+#settingsPage .settings-panel::before,
+#settingsPage .settings-group::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, .30), transparent 34%, rgba(255, 255, 255, .08)),
+    linear-gradient(180deg, rgba(255, 255, 255, .14), transparent 44%) !important;
+  opacity: calc(var(--card-opacity) * .36) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+#todayPage .today-panel > *,
+#schedulePage .schedule-panel > *,
+#editPage .editor-panel > *,
+#settingsPage .settings-panel > *,
+#settingsPage .settings-group > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Final today overview frame. */
+#todayCourseList,
+.today-course-list {
+  position: relative !important;
+  isolation: isolate !important;
+  overflow: hidden !important;
+  padding: 12px !important;
+  border: 1px solid rgba(255, 255, 255, calc(var(--card-opacity) * .46)) !important;
+  border-radius: var(--radius-lg) !important;
+  background: rgba(255, 255, 255, calc(var(--card-opacity) * .34)) !important;
+  box-shadow:
+    0 16px 44px rgba(34, 59, 76, calc(var(--card-opacity) * .16)),
+    inset 0 1px 0 rgba(255, 255, 255, calc(var(--card-opacity) * .50)) !important;
+  backdrop-filter: blur(var(--blur)) saturate(180%) brightness(1.04) !important;
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(180%) brightness(1.04) !important;
+}
+
+#todayCourseList::before,
+.today-course-list::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, .30), transparent 34%, rgba(255, 255, 255, .08)),
+    linear-gradient(180deg, rgba(255, 255, 255, .14), transparent 44%) !important;
+  opacity: calc(var(--card-opacity) * .36) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+#todayCourseList::after,
+.today-course-list::after {
+  content: none !important;
+}
+
+#todayCourseList > *,
+.today-course-list > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Latest controls: data buttons and custom time editor. */
+#exportScheduleBtn {
+  color: var(--ink) !important;
+  background: rgba(255, 255, 255, calc(.20 + var(--card-opacity) * .46)) !important;
+}
+
+#timeSlotsText {
+  min-height: 168px;
+  resize: vertical;
+  font-family: "SF Mono", "Cascadia Mono", Consolas, monospace;
+  line-height: 1.6;
+}
+
+.compact-actions {
+  grid-template-columns: minmax(0, 1fr);
 }

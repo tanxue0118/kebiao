@@ -5,6 +5,7 @@ const SETTINGS_KEY = 'roommate-schedule:settings:v1';
 const DAILY_POEM_KEY = 'roommate-schedule:daily-poem:v1';
 const DEFAULT_REMOTE_URL = 'https://raw.githubusercontent.com/tanxue0118/kebiao/main/schedule.json';
 const DAILY_POEM_URL = 'https://v1.jinrishici.com/all.json';
+const FIXED_BLUR_AMOUNT = 28;
 
 const DAY_NAMES = ['星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期日'];
 const SHORT_DAY_NAMES = ['一', '二', '三', '四', '五', '六', '日'];
@@ -80,8 +81,7 @@ const DEFAULT_SETTINGS = {
   cellRadius: 8,
   cellGap: 6,
   courseOpacity: 0.92,
-  cardOpacity: 0.42,
-  blurAmount: 28
+  cardOpacity: 0.42
 };
 
 const fallbackSchedule = {
@@ -120,6 +120,12 @@ let state = loadSchedule();
 let settings = loadSettings(state);
 let activeWeek = clampMinWeek(getCurrentWeek(getSemesterStart()));
 let activeDay = getTodayDay();
+let pendingRenderParts = null;
+let pendingRenderFrame = 0;
+let settingsPersistTimer = 0;
+let holidayRangeCacheKey = null;
+let holidayRangeCache = [];
+const weekMatchCache = new Map();
 
 const els = {
   todayText: document.getElementById('todayText'),
@@ -131,6 +137,11 @@ const els = {
   todayJumpBtn: document.getElementById('todayJumpBtn'),
   pageTabs: document.querySelectorAll('[data-page]'),
   bgInput: document.getElementById('bgInput'),
+  clearScheduleBtn: document.getElementById('clearScheduleBtn'),
+  importScheduleInput: document.getElementById('importScheduleInput'),
+  exportScheduleBtn: document.getElementById('exportScheduleBtn'),
+  timeSlotsText: document.getElementById('timeSlotsText'),
+  saveTimeSlotsBtn: document.getElementById('saveTimeSlotsBtn'),
   bgLayer: document.getElementById('bgLayer'),
   todaySummary: document.getElementById('todaySummary'),
   todayCourseList: document.getElementById('todayCourseList'),
@@ -160,6 +171,7 @@ const els = {
 init();
 
 function init() {
+  detectBackdropSupport();
   injectTimetableStyles();
   restoreBackground();
   ensureSettingsControls();
@@ -177,12 +189,23 @@ function init() {
   els.todayJumpBtn?.addEventListener('click', jumpToToday);
   els.pageTabs.forEach((tab) => tab.addEventListener('click', () => showPage(tab.dataset.page)));
   els.bgInput?.addEventListener('change', changeBackground);
+  els.clearScheduleBtn?.addEventListener('click', clearSchedule);
+  els.importScheduleInput?.addEventListener('change', importScheduleJson);
+  els.exportScheduleBtn?.addEventListener('click', exportScheduleJson);
+  els.saveTimeSlotsBtn?.addEventListener('click', saveTimeSlots);
   els.addBtn?.addEventListener('click', () => resetForm());
   els.form?.addEventListener('submit', saveCourse);
   els.deleteBtn?.addEventListener('click', deleteCourse);
+  window.addEventListener('resize', debounce(renderTimetable, 160));
 
   if (document.getElementById('todayPage')) showPage('todayPage');
   window.setTimeout(() => loadRemoteSchedule(DEFAULT_REMOTE_URL, { auto: true }), 0);
+}
+
+function detectBackdropSupport() {
+  const supportsBackdrop = window.CSS?.supports?.('backdrop-filter', 'blur(1px)')
+    || window.CSS?.supports?.('-webkit-backdrop-filter', 'blur(1px)');
+  document.body.classList.toggle('no-backdrop', !supportsBackdrop);
 }
 
 function loadSchedule() {
@@ -218,8 +241,7 @@ function loadSettings(schedule) {
   normalized.cellRadius = toPositiveInt(normalized.cellRadius, DEFAULT_SETTINGS.cellRadius);
   normalized.cellGap = toPositiveInt(normalized.cellGap, DEFAULT_SETTINGS.cellGap);
   normalized.courseOpacity = clampNumber(Number(normalized.courseOpacity), 0.2, 1, DEFAULT_SETTINGS.courseOpacity);
-  normalized.cardOpacity = clampNumber(Number(normalized.cardOpacity), 0.06, 1, DEFAULT_SETTINGS.cardOpacity);
-  normalized.blurAmount = clampNumber(Number(normalized.blurAmount), 0, 40, DEFAULT_SETTINGS.blurAmount);
+  normalized.cardOpacity = clampNumber(Number(normalized.cardOpacity), 0, 1, DEFAULT_SETTINGS.cardOpacity);
   return normalized;
 }
 
@@ -330,6 +352,7 @@ async function loadRemoteSchedule(urlOverride, options = {}) {
     activeWeek = clampMinWeek(activeWeek || getCurrentWeek(getSemesterStart()));
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     writeSettingsControls();
+    writeTimeSlotsControl();
     renderDayTabs();
     renderWeek();
     renderTimetable();
@@ -486,6 +509,8 @@ function renderDayTabs() {
 function renderTimetable() {
   const visibleDays = getVisibleDays();
   const slots = getDisplayTimeSlots();
+  const dayColumns = new Map(visibleDays.map((day, index) => [day, index + 2]));
+  const slotRows = new Map(slots.map((slot, index) => [slot.number, index + 2]));
   const courses = state.courses
     .filter((course) => visibleDays.includes(course.dayOfWeek) && includesWeek(course.weeks, activeWeek))
     .sort((a, b) => a.dayOfWeek - b.dayOfWeek || a.startSection - b.startSection);
@@ -496,23 +521,24 @@ function renderTimetable() {
   if (!els.courseList) return;
 
   applyAppearanceSettings();
-  els.courseList.innerHTML = '';
   els.courseList.className = 'timetable';
   els.courseList.style.setProperty('--cell-height', `${settings.cellHeight}px`);
   els.courseList.style.setProperty('--cell-radius', `${settings.cellRadius}px`);
   els.courseList.style.setProperty('--cell-gap', `${settings.cellGap}px`);
   els.courseList.style.setProperty('--course-opacity', String(settings.courseOpacity));
+  const fragment = document.createDocumentFragment();
 
   const timetable = document.createElement('div');
   timetable.className = `timetable-grid${isHoliday ? ' holiday-week' : ''}`;
-  timetable.style.gridTemplateColumns = `var(--time-rail-width, 78px) repeat(${visibleDays.length}, minmax(126px, 1fr))`;
+  timetable.style.gridTemplateColumns = `var(--time-rail-width, 78px) repeat(${visibleDays.length}, minmax(var(--day-min-width, 0px), 1fr))`;
   timetable.style.gridTemplateRows = `44px repeat(${slots.length}, minmax(${settings.cellHeight}px, auto))`;
   timetable.style.gap = `${settings.cellGap}px`;
-  timetable.style.minWidth = `${78 + visibleDays.length * 126}px`;
+  timetable.style.minWidth = '0';
+  timetable.style.width = '100%';
 
   timetable.appendChild(createGridHeader('节次', 1, 1));
   visibleDays.forEach((day, index) => {
-    timetable.appendChild(createGridHeader(DAY_NAMES[day - 1], index + 2, 1));
+    timetable.appendChild(createGridHeader(getDayHeaderName(day), index + 2, 1));
   });
 
   slots.forEach((slot, rowIndex) => {
@@ -532,28 +558,30 @@ function renderTimetable() {
   });
 
   courses.forEach((course, index) => {
-    const dayColumn = visibleDays.indexOf(course.dayOfWeek) + 2;
-    const startIndex = slots.findIndex((slot) => slot.number === course.startSection);
-    const endIndex = slots.findIndex((slot) => slot.number === course.endSection);
-    if (dayColumn < 2 || startIndex < 0 || endIndex < 0) return;
-    timetable.appendChild(createCourseBlock(course, dayColumn, startIndex + 2, endIndex + 3, index, isHoliday));
+    const dayColumn = dayColumns.get(course.dayOfWeek);
+    const startRow = slotRows.get(course.startSection);
+    const endRow = slotRows.get(course.endSection);
+    if (!dayColumn || !startRow || !endRow) return;
+    timetable.appendChild(createCourseBlock(course, dayColumn, startRow, endRow + 1, index, isHoliday));
   });
 
-  els.courseList.appendChild(timetable);
+  fragment.appendChild(timetable);
 
   if (isHoliday) {
     const hint = document.createElement('p');
     hint.className = 'hint holiday-hint';
     hint.textContent = `第 ${activeWeek} 周是假期中，继续切换周次可以查看后续假期或下学期。`;
-    els.courseList.prepend(hint);
+    fragment.insertBefore(hint, timetable);
   }
 
   if (!courses.length) {
     const empty = document.createElement('div');
     empty.className = 'empty';
     empty.textContent = isHoliday ? '假期中，暂无课程。' : '这一周没有课程。';
-    els.courseList.appendChild(empty);
+    fragment.appendChild(empty);
   }
+
+  els.courseList.replaceChildren(fragment);
 }
 
 function renderToday() {
@@ -575,13 +603,13 @@ function renderToday() {
   els.todaySummary.textContent = isHoliday
     ? `${dayText} · 第 ${todayWeek} 周 · 假期中`
     : `${dayText} · 第 ${todayWeek} 周 · ${todayCourses.length ? `${todayCourses.length} 门课` : '今天没课'}`;
-  els.todayCourseList.innerHTML = '';
+  const fragment = document.createDocumentFragment();
 
   if (!todayCourses.length) {
     const empty = document.createElement('div');
     empty.className = 'empty today-empty';
     empty.textContent = isHoliday ? '今天是假期中，好好休息。' : '今天没有安排课程。';
-    els.todayCourseList.appendChild(empty);
+    els.todayCourseList.replaceChildren(empty);
     return;
   }
 
@@ -597,8 +625,9 @@ function renderToday() {
       </div>
     `;
     card.addEventListener('click', () => fillForm(course));
-    els.todayCourseList.appendChild(card);
+    fragment.appendChild(card);
   });
+  els.todayCourseList.replaceChildren(fragment);
 }
 
 function createGridHeader(text, column, row) {
@@ -608,6 +637,18 @@ function createGridHeader(text, column, row) {
   header.style.gridColumn = String(column);
   header.style.gridRow = String(row);
   return header;
+}
+
+function getDayHeaderName(day) {
+  return window.matchMedia('(max-width: 640px)').matches ? SHORT_DAY_NAMES[day - 1] : DAY_NAMES[day - 1];
+}
+
+function debounce(fn, wait = 120) {
+  let timer;
+  return (...args) => {
+    window.clearTimeout(timer);
+    timer = window.setTimeout(() => fn(...args), wait);
+  };
 }
 
 function createTimeCell(slot, row) {
@@ -622,16 +663,22 @@ function createTimeCell(slot, row) {
 }
 
 function createCourseBlock(course, column, rowStart, rowEnd, index, isHoliday) {
+  const span = Math.max(1, rowEnd - rowStart);
+  const visualOpacity = isHoliday ? Math.min(settings.courseOpacity, 0.5) : settings.courseOpacity;
   const block = document.createElement('article');
   block.className = 'course-card timetable-course';
   block.style.gridColumn = String(column);
   block.style.gridRow = `${rowStart} / ${rowEnd}`;
   block.style.gridTemplateColumns = 'minmax(0, 1fr)';
   block.style.alignContent = 'start';
-  block.style.minHeight = `${(rowEnd - rowStart) * settings.cellHeight + (rowEnd - rowStart - 1) * settings.cellGap}px`;
+  block.style.minHeight = `${span * settings.cellHeight + (span - 1) * settings.cellGap}px`;
   block.style.borderRadius = `${settings.cellRadius}px`;
-  block.style.opacity = String(isHoliday ? Math.min(settings.courseOpacity, 0.5) : settings.courseOpacity);
   block.style.zIndex = String(10 + index);
+  block.dataset.span = String(span);
+  block.style.setProperty('--course-index', String(Math.min(index, 8)));
+  block.style.setProperty('--course-visual-opacity', String(visualOpacity));
+  block.style.setProperty('--course-color-alpha', String(visualOpacity));
+  block.style.setProperty('--course-surface-alpha', String(Math.min(visualOpacity * 0.58, 0.58)));
 
   if (settings.visibleFields.includes('name')) {
     const title = document.createElement('h3');
@@ -711,8 +758,7 @@ function ensureSettingsControls() {
     <div class="form-row">
       <label class="field"><span>间距</span><input id="cellGap" type="number" min="0" max="20"></label>
       <label class="field"><span>课程透明度</span><input id="courseOpacity" type="number" min="0.2" max="1" step="0.05"></label>
-      <label class="field"><span>卡片透明度</span><input id="cardOpacity" type="number" min="0.06" max="1" step="0.04"></label>
-      <label class="field"><span>模糊强度</span><input id="blurAmount" type="number" min="0" max="40" step="1"></label>
+      <label class="field"><span>卡片透明度</span><input id="cardOpacity" type="number" min="0" max="1" step="0.04"></label>
     </div>
   `;
   stack.appendChild(panel);
@@ -729,16 +775,46 @@ function bindSettingsControls() {
     cellRadius: getByIds('cellRadius', 'settingCellRadius'),
     cellGap: getByIds('cellGap', 'settingCellGap'),
     courseOpacity: getByIds('courseOpacity', 'settingCourseOpacity'),
-    cardOpacity: getByIds('cardOpacity', 'settingCardOpacity'),
-    blurAmount: getByIds('blurAmount', 'settingBlurAmount')
+    cardOpacity: getByIds('cardOpacity', 'settingCardOpacity')
   };
 
   writeSettingsControls();
+  writeTimeSlotsControl();
   Object.values(els.settings).forEach((control) => {
     if (!control) return;
     control.addEventListener('input', readSettingsControls);
     control.addEventListener('change', readSettingsControls);
   });
+}
+
+function scheduleRender(parts) {
+  pendingRenderParts = {
+    ...(pendingRenderParts || {}),
+    ...parts
+  };
+  if (pendingRenderFrame) return;
+
+  const run = () => {
+    const current = pendingRenderParts || {};
+    pendingRenderParts = null;
+    pendingRenderFrame = 0;
+    if (current.dayTabs) renderDayTabs();
+    if (current.week) renderWeek();
+    if (current.timetable) renderTimetable();
+    if (current.today) renderToday();
+    if (current.form) resetForm(false);
+  };
+
+  pendingRenderFrame = window.requestAnimationFrame
+    ? window.requestAnimationFrame(run)
+    : window.setTimeout(run, 16);
+}
+
+function persistSettingsSoon() {
+  window.clearTimeout(settingsPersistTimer);
+  settingsPersistTimer = window.setTimeout(() => {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  }, 180);
 }
 
 function getByIds(...ids) {
@@ -755,10 +831,61 @@ function writeSettingsControls() {
   if (els.settings.cellGap) els.settings.cellGap.value = settings.cellGap;
   if (els.settings.courseOpacity) els.settings.courseOpacity.value = settings.courseOpacity;
   if (els.settings.cardOpacity) els.settings.cardOpacity.value = settings.cardOpacity;
-  if (els.settings.blurAmount) els.settings.blurAmount.value = settings.blurAmount;
   getVisibleFieldInputs().forEach((input) => {
     input.checked = settings.visibleFields.includes(input.value);
   });
+}
+
+function writeTimeSlotsControl() {
+  if (!els.timeSlotsText) return;
+  els.timeSlotsText.value = formatTimeSlotsText(state.timeSlots);
+}
+
+function formatTimeSlotsText(slots) {
+  return normalizeTimeSlots(slots)
+    .map((slot) => `${slot.number} ${slot.startTime || ''}-${slot.endTime || ''}`.trim())
+    .join('\n');
+}
+
+function saveTimeSlots() {
+  if (!els.timeSlotsText) return;
+  try {
+    state.timeSlots = parseTimeSlotsText(els.timeSlotsText.value);
+    state = normalizeSchedule(state);
+    persist();
+    writeTimeSlotsControl();
+    renderTimetable();
+    renderToday();
+    resetForm(false);
+    showStatus('课程时间已保存');
+  } catch (error) {
+    showStatus(`时间格式错误：${error.message}`);
+  }
+}
+
+function parseTimeSlotsText(value) {
+  const lines = String(value)
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+  if (!lines.length) throw new Error('至少填写一节课时间');
+
+  const slots = lines.map((line, index) => {
+    const match = line.match(/^(\d+)?\s*([0-2]\d:[0-5]\d)\s*[-~—–]\s*([0-2]\d:[0-5]\d)$/);
+    if (!match) throw new Error(`第 ${index + 1} 行应为“1 08:00-08:45”`);
+    const number = Number(match[1] || index + 1);
+    const startTime = match[2];
+    const endTime = match[3];
+    if (timeToMinutes(endTime) <= timeToMinutes(startTime)) throw new Error(`第 ${index + 1} 行结束时间需晚于开始时间`);
+    return { number, startTime, endTime };
+  });
+
+  const seen = new Set();
+  slots.forEach((slot) => {
+    if (seen.has(slot.number)) throw new Error(`第 ${slot.number} 节重复`);
+    seen.add(slot.number);
+  });
+  return normalizeTimeSlots(slots);
 }
 
 function readSettingsControls() {
@@ -773,22 +900,40 @@ function readSettingsControls() {
     cellRadius: toPositiveInt(els.settings.cellRadius?.value, DEFAULT_SETTINGS.cellRadius),
     cellGap: toPositiveInt(els.settings.cellGap?.value, DEFAULT_SETTINGS.cellGap),
     courseOpacity: clampNumber(Number(els.settings.courseOpacity?.value), 0.2, 1, DEFAULT_SETTINGS.courseOpacity),
-    cardOpacity: clampNumber(Number(els.settings.cardOpacity?.value), 0.06, 1, DEFAULT_SETTINGS.cardOpacity),
-    blurAmount: clampNumber(Number(els.settings.blurAmount?.value), 0, 40, DEFAULT_SETTINGS.blurAmount)
+    cardOpacity: clampNumber(Number(els.settings.cardOpacity?.value), 0, 1, DEFAULT_SETTINGS.cardOpacity)
   };
   if (!settings.visibleFields.length) settings.visibleFields = ['name'];
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  applyAppearanceSettings();
+  persistSettingsSoon();
   activeWeek = clampMinWeek(activeWeek);
-  renderDayTabs();
-  renderWeek();
-  renderTimetable();
-  renderToday();
-  resetForm(false);
+  scheduleRender({ dayTabs: true, week: true, timetable: true, today: true, form: true });
 }
 
 function applyAppearanceSettings() {
-  document.documentElement.style.setProperty('--card-opacity', String(settings.cardOpacity));
-  document.documentElement.style.setProperty('--blur', `${settings.blurAmount}px`);
+  const cardOpacity = clampNumber(Number(settings.cardOpacity), 0, 1, DEFAULT_SETTINGS.cardOpacity);
+  const blurAmount = FIXED_BLUR_AMOUNT;
+  const glassBlur = blurAmount;
+  document.documentElement.style.setProperty('--card-opacity', String(cardOpacity));
+  document.documentElement.style.setProperty('--blur', `${blurAmount}px`);
+  document.documentElement.style.setProperty('--effective-blur', `${blurAmount}px`);
+  document.documentElement.style.setProperty('--glass-blur', `${glassBlur}px`);
+  document.documentElement.style.setProperty('--surface-blur', `${glassBlur}px`);
+  document.documentElement.style.setProperty('--field-blur', `${Math.min(blurAmount * 0.55, 22)}px`);
+  document.documentElement.style.setProperty('--mobile-field-blur', `${Math.min(blurAmount * 0.42, 18)}px`);
+  document.documentElement.style.setProperty('--page-overlay-alpha', String(cardOpacity * 0.18));
+  document.documentElement.style.setProperty('--bg-image-opacity', String(1 - cardOpacity * 0.28));
+  document.documentElement.style.setProperty('--card-alpha-outer', String(cardOpacity));
+  document.documentElement.style.setProperty('--card-alpha-panel', String(cardOpacity));
+  document.documentElement.style.setProperty('--card-alpha-panel-mobile', String(cardOpacity));
+  document.documentElement.style.setProperty('--card-alpha-panel-strong-mobile', String(cardOpacity));
+  document.documentElement.style.setProperty('--card-alpha-grid', String(cardOpacity));
+  document.documentElement.style.setProperty('--card-alpha-chip', String(cardOpacity * 0.75));
+  document.documentElement.style.setProperty('--card-alpha-control', String(cardOpacity * 0.75));
+  document.documentElement.style.setProperty('--card-alpha-tab', String(cardOpacity));
+  document.documentElement.style.setProperty('--card-alpha-field', String(cardOpacity * 0.75));
+  const courseOpacity = clampNumber(Number(settings.courseOpacity), 0.2, 1, DEFAULT_SETTINGS.courseOpacity);
+  document.documentElement.style.setProperty('--course-color-alpha', String(courseOpacity));
+  document.documentElement.style.setProperty('--course-surface-alpha', String(Math.min(courseOpacity * 0.58, 0.58)));
 }
 
 function getVisibleFieldInputs() {
@@ -830,8 +975,8 @@ function injectTimetableStyles() {
       position: sticky;
       top: 0;
       z-index: 30;
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
+      backdrop-filter: blur(var(--effective-blur));
+      -webkit-backdrop-filter: blur(var(--effective-blur));
     }
     #courseList .timetable-cell {
       min-height: var(--cell-height);
@@ -1000,12 +1145,111 @@ function persist() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
+function refreshScheduleView(message) {
+  activeWeek = clampMinWeek(getCurrentWeek(getSemesterStart()));
+  writeSettingsControls();
+  writeTimeSlotsControl();
+  applyAppearanceSettings();
+  renderDayTabs();
+  renderWeek();
+  renderTimetable();
+  renderToday();
+  resetForm(false);
+  if (message) showStatus(message);
+}
+
+function clearSchedule() {
+  if (!window.confirm('确定清空当前课表吗？')) return;
+
+  const deletedIds = new Set([...getDeletedIds(), ...(state.courses || []).map((course) => course.id).filter(Boolean)]);
+  localStorage.setItem(DELETED_KEY, JSON.stringify([...deletedIds]));
+  state = normalizeSchedule({
+    semesterStart: getSemesterStart(),
+    semesterWeeks: getSemesterWeeks(),
+    timeSlots: state.timeSlots,
+    config: state.config,
+    courses: []
+  });
+  persist();
+  refreshScheduleView('课表已清空');
+}
+
+function importScheduleJson(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.addEventListener('load', () => {
+    try {
+      const imported = normalizeSchedule(JSON.parse(String(reader.result || '{}')));
+      state = imported;
+      settings = {
+        ...settings,
+        semesterStart: imported.semesterStart,
+        semesterWeeks: imported.semesterWeeks
+      };
+      holidayRangeCacheKey = null;
+      weekMatchCache.clear();
+      localStorage.removeItem(DELETED_KEY);
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+      persist();
+      refreshScheduleView('JSON 课表已导入');
+    } catch (error) {
+      showStatus(`导入失败：${error.message}`);
+    } finally {
+      event.target.value = '';
+    }
+  });
+  reader.addEventListener('error', () => {
+    showStatus('导入失败：无法读取文件');
+    event.target.value = '';
+  });
+  reader.readAsText(file, 'utf-8');
+}
+
+function exportScheduleJson() {
+  const payload = {
+    semesterStart: getSemesterStart(),
+    semesterWeeks: getSemesterWeeks(),
+    timeSlots: state.timeSlots,
+    config: {
+      ...(state.config || {}),
+      semesterStartDate: getSemesterStart(),
+      semesterTotalWeeks: getSemesterWeeks()
+    },
+    courses: state.courses || []
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `shiguangschedule_${formatDateStamp(new Date())}.json`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 0);
+  showStatus('JSON 课表已导出');
+}
+
 function showPage(pageId) {
+  if (pageId === 'schedulePage') {
+    activeWeek = clampMinWeek(getCurrentWeek(getSemesterStart()));
+    renderWeek();
+    renderTimetable();
+    resetForm(false);
+  }
+
   document.querySelectorAll('.page').forEach((page) => {
     page.classList.toggle('active', page.id === pageId);
   });
   els.pageTabs.forEach((tab) => {
-    tab.classList.toggle('active', tab.dataset.page === pageId);
+    const active = tab.dataset.page === pageId;
+    tab.classList.toggle('active', active);
+    if (active) {
+      tab.setAttribute('aria-current', 'page');
+    } else {
+      tab.removeAttribute('aria-current');
+    }
   });
 }
 
@@ -1046,7 +1290,8 @@ function restoreBackground() {
 
 function applyBackground(value) {
   if (!els.bgLayer) return;
-  els.bgLayer.style.backgroundImage = `url("${value}")`;
+  const imageValue = `url(${JSON.stringify(value)})`;
+  els.bgLayer.style.backgroundImage = imageValue;
   document.body.classList.add('has-custom-bg');
 }
 
@@ -1105,6 +1350,11 @@ function addDays(date, days) {
 
 function formatDate(date) {
   return `${date.getMonth() + 1}.${date.getDate()}`;
+}
+
+function formatDateStamp(date) {
+  const pad = (value) => String(value).padStart(2, '0');
+  return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}_${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`;
 }
 
 function escapeHtml(value) {

@@ -155,12 +155,3 @@ https://raw.githubusercontent.com/tanxue0118/kebiao/main/schedule.json
 - 使用“导入 JSON”会把导入内容作为新的本地课表，并清除已删除记录。
 - 使用“导出 JSON”会导出当前本地课表，包括自定义节次时间。
 
-## APK
-
-APK 构建产物位于：
-
-```text
-dist/课程表.apk
-```
-
-建议在 GitHub Release 中下载 APK，而不是把 APK 当作源码文件提交到仓库。

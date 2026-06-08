@@ -178,7 +178,6 @@ function init() {
   bindSettingsControls();
   applyAppearanceSettings();
   renderDayTabs();
-  renderDailyPoem();
   renderWeek();
   renderTimetable();
   renderToday();
@@ -509,6 +508,7 @@ function renderDayTabs() {
 function renderTimetable() {
   const visibleDays = getVisibleDays();
   const slots = getDisplayTimeSlots();
+  const weekStart = startOfWeek(addDays(parseDate(getSemesterStart()), (activeWeek - 1) * 7));
   const dayColumns = new Map(visibleDays.map((day, index) => [day, index + 2]));
   const slotRows = new Map(slots.map((slot, index) => [slot.number, index + 2]));
   const courses = state.courses
@@ -545,7 +545,7 @@ function renderTimetable() {
 
   timetable.appendChild(createGridHeader('节次', 1, 1));
   visibleDays.forEach((day, index) => {
-    timetable.appendChild(createGridHeader(getDayHeaderName(day), index + 2, 1));
+    timetable.appendChild(createGridHeader(getDayHeaderName(day), index + 2, 1, formatDayHeaderDate(weekStart, day)));
   });
 
   slots.forEach((slot, rowIndex) => {
@@ -637,17 +637,30 @@ function renderToday() {
   els.todayCourseList.replaceChildren(fragment);
 }
 
-function createGridHeader(text, column, row) {
+function createGridHeader(text, column, row, subtext = '') {
   const header = document.createElement('div');
   header.className = 'timetable-header';
-  header.textContent = text;
   header.style.gridColumn = String(column);
   header.style.gridRow = String(row);
+  if (subtext) {
+    const title = document.createElement('strong');
+    title.textContent = text;
+    const date = document.createElement('span');
+    date.textContent = subtext;
+    header.append(title, date);
+  } else {
+    header.textContent = text;
+  }
   return header;
 }
 
 function getDayHeaderName(day) {
   return window.matchMedia('(max-width: 640px)').matches ? SHORT_DAY_NAMES[day - 1] : DAY_NAMES[day - 1];
+}
+
+function formatDayHeaderDate(weekStart, day) {
+  const date = addDays(weekStart, day - 1);
+  return `${date.getMonth() + 1}/${date.getDate()}`;
 }
 
 function debounce(fn, wait = 120) {
@@ -1271,11 +1284,16 @@ function changeWeek(delta) {
 }
 
 function jumpToToday() {
+  const activePageId = document.querySelector('.page.active')?.id;
   activeWeek = clampMinWeek(getCurrentWeek(getSemesterStart()));
   renderWeek();
   renderTimetable();
   renderToday();
   resetForm(false);
+  if (activePageId === 'schedulePage') {
+    showStatus('已回到本周课表');
+    return;
+  }
   showPage(document.getElementById('todayPage') ? 'todayPage' : 'schedulePage');
 }
 

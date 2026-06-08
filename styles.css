@@ -2227,7 +2227,7 @@ textarea:focus {
 }
 
 #settingsPage .settings-stack > .field:nth-child(1)::before {
-  content: "数据源";
+  content: "数据�?;
 }
 
 #settingsPage .settings-stack > .form-row:nth-child(5)::before {
@@ -2237,7 +2237,7 @@ textarea:focus {
 
 #settingsPage .settings-stack > .settings-fieldset::before,
 #settingsPage .settings-stack > fieldset::before {
-  content: "课程块内容";
+  content: "课程块内�?;
 }
 
 #settingsPage .settings-stack > .form-row:nth-child(8)::before {
@@ -4819,8 +4819,33 @@ html {
 }
 
 .hero .today-jump {
-  min-width: 42px !important;
-  padding-inline: 4px !important;
+  min-width: 52px !important;
+  min-height: 34px !important;
+  margin-left: 12px !important;
+  padding: 0 13px !important;
+  border: 1px solid rgba(79, 123, 149, .24) !important;
+  border-radius: 999px !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .76), rgba(230, 242, 247, .52)) !important;
+  color: var(--ink) !important;
+  box-shadow:
+    0 8px 18px rgba(44, 71, 92, .10),
+    inset 0 1px 0 rgba(255, 255, 255, .58) !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  transition: transform .18s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease !important;
+}
+
+.hero .today-jump:hover,
+.hero .today-jump:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(79, 123, 149, .36) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .88), rgba(222, 239, 246, .66)) !important;
+  box-shadow:
+    0 10px 22px rgba(44, 71, 92, .14),
+    inset 0 1px 0 rgba(255, 255, 255, .68) !important;
 }
 
 #courseList .timetable-grid {
@@ -4859,7 +4884,10 @@ html {
   }
 
   .hero .today-jump {
-    min-width: 36px !important;
+    min-width: 46px !important;
+    min-height: 30px !important;
+    margin-left: 8px !important;
+    padding-inline: 10px !important;
     font-size: 12px !important;
   }
 
@@ -5920,8 +5948,33 @@ body.no-backdrop .app-tabs {
 }
 
 .hero .today-jump {
-  min-width: 42px !important;
-  padding-inline: 4px !important;
+  min-width: 52px !important;
+  min-height: 34px !important;
+  margin-left: 12px !important;
+  padding: 0 13px !important;
+  border: 1px solid rgba(79, 123, 149, .24) !important;
+  border-radius: 999px !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .76), rgba(230, 242, 247, .52)) !important;
+  color: var(--ink) !important;
+  box-shadow:
+    0 8px 18px rgba(44, 71, 92, .10),
+    inset 0 1px 0 rgba(255, 255, 255, .58) !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  transition: transform .18s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease !important;
+}
+
+.hero .today-jump:hover,
+.hero .today-jump:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(79, 123, 149, .36) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .88), rgba(222, 239, 246, .66)) !important;
+  box-shadow:
+    0 10px 22px rgba(44, 71, 92, .14),
+    inset 0 1px 0 rgba(255, 255, 255, .68) !important;
 }
 
 #courseList .timetable-grid {
@@ -5960,7 +6013,10 @@ body.no-backdrop .app-tabs {
   }
 
   .hero .today-jump {
-    min-width: 36px !important;
+    min-width: 46px !important;
+    min-height: 30px !important;
+    margin-left: 8px !important;
+    padding-inline: 10px !important;
     font-size: 12px !important;
   }
 
@@ -5980,5 +6036,363 @@ body.no-backdrop .app-tabs {
     line-height: 1.05 !important;
     writing-mode: horizontal-tb;
     overflow-wrap: anywhere;
+  }
+}
+
+/* Final visual calm pass: warmer text, fewer boxes, smaller header, lighter blur. */
+:root {
+  --ink: #241812;
+  --ink-soft: #5b3528;
+  --ink-muted: #7b4a35;
+  --blur: 7px;
+  --surface-blur: 5px;
+  --field-blur: 5px;
+  --mobile-field-blur: 4px;
+}
+
+body,
+button,
+input,
+select,
+textarea {
+  color: var(--ink) !important;
+}
+
+.eyebrow,
+.section-title p,
+.daily-poem,
+.week-chip small,
+#courseList .time-cell,
+#courseList .timetable-header,
+#courseList .timetable-course .course-meta,
+.today-time,
+.today-main p,
+.today-main span,
+.hint,
+.empty {
+  color: var(--ink-soft) !important;
+}
+
+.hero {
+  grid-template-columns: minmax(0, .55fr) auto !important;
+  max-width: min(100%, 720px) !important;
+  padding: 10px 14px !important;
+  gap: 10px !important;
+  border-radius: 18px !important;
+}
+
+.hero h1 {
+  font-size: clamp(24px, 4vw, 34px) !important;
+  line-height: 1.05 !important;
+  margin: 0 !important;
+}
+
+.hero .eyebrow {
+  margin-bottom: 2px !important;
+}
+
+.hero .daily-poem {
+  margin-top: 5px !important;
+  font-size: 12px !important;
+  line-height: 1.45 !important;
+}
+
+.hero .week-switcher {
+  gap: 5px !important;
+}
+
+.hero .week-chip {
+  min-width: 76px !important;
+}
+
+#schedulePage .section-title {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+
+#addBtn {
+  display: none !important;
+}
+
+#todayCourseList,
+.today-course-list {
+  padding: 2px 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+#todayCourseList::before,
+#todayCourseList::after,
+.today-course-list::before,
+.today-course-list::after,
+.today-course::before,
+.today-course::after {
+  content: none !important;
+}
+
+.today-course {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  padding: 8px 0 !important;
+  border-radius: 0 !important;
+}
+
+.today-course + .today-course {
+  border-top: 1px solid rgba(91, 53, 40, .14) !important;
+}
+
+#courseList .timetable-header {
+  display: grid !important;
+  place-items: center !important;
+  gap: 2px !important;
+  border-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  min-height: 34px !important;
+  padding: 4px 2px !important;
+  line-height: 1.08 !important;
+}
+
+#courseList .timetable-header strong,
+#courseList .timetable-header span {
+  display: block !important;
+}
+
+#courseList .timetable-header strong {
+  color: var(--ink) !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+}
+
+#courseList .timetable-header span {
+  color: var(--ink-soft) !important;
+  font-size: 10px !important;
+  font-weight: 750 !important;
+}
+
+#courseList .timetable-cell {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+#courseList .time-cell {
+  display: grid !important;
+  align-content: center !important;
+  justify-items: center !important;
+  gap: 3px !important;
+  border-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  text-align: center !important;
+}
+
+#todayPage .today-panel,
+#schedulePage .schedule-panel,
+#editPage .editor-panel,
+#settingsPage .settings-panel,
+#settingsPage .settings-group,
+.app-tabs {
+  backdrop-filter: blur(var(--blur)) saturate(130%) brightness(1.02) !important;
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(130%) brightness(1.02) !important;
+}
+
+@media (max-width: 640px) {
+  .hero {
+    grid-template-columns: minmax(0, 1fr) !important;
+    max-width: 100% !important;
+    padding: 9px 12px !important;
+  }
+
+  .hero h1 {
+    font-size: 24px !important;
+  }
+
+  .hero .week-switcher {
+    width: auto !important;
+  }
+
+  #courseList .timetable-grid {
+    --time-rail-width: 44px !important;
+  }
+
+  #courseList .timetable-header strong {
+    font-size: 11px !important;
+  }
+
+  #courseList .timetable-header span {
+    font-size: 9px !important;
+  }
+
+  #courseList .time-cell span {
+    font-size: 8px !important;
+    white-space: normal !important;
+  }
+}
+/* Final readability pass: black text, full-width compact header, lower blur. */
+:root {
+  --ink: #111111;
+  --ink-soft: #171717;
+  --ink-muted: #242424;
+  --blur: 3px;
+  --surface-blur: 2px;
+  --field-blur: 2px;
+  --mobile-field-blur: 2px;
+}
+
+body,
+button,
+input,
+select,
+textarea,
+.eyebrow,
+.section-title p,
+.daily-poem,
+.week-chip,
+.week-chip small,
+#courseList .time-cell,
+#courseList .time-cell strong,
+#courseList .time-cell span,
+#courseList .timetable-header,
+#courseList .timetable-header strong,
+#courseList .timetable-header span,
+#courseList .timetable-course,
+#courseList .timetable-course h3,
+#courseList .timetable-course .course-meta,
+.today-time,
+.today-main,
+.today-main h3,
+.today-main p,
+.today-main span,
+.hint,
+.empty {
+  color: #111111 !important;
+}
+
+.hero {
+  width: 100% !important;
+  max-width: none !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+}
+
+.hero .daily-poem {
+  margin-top: 3px !important;
+  line-height: 1.35 !important;
+}
+
+#todayPage .today-panel,
+#schedulePage .schedule-panel,
+#editPage .editor-panel,
+#settingsPage .settings-panel,
+#settingsPage .settings-group,
+.app-tabs,
+.hero,
+.panel {
+  backdrop-filter: blur(var(--blur)) saturate(116%) brightness(1.01) !important;
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(116%) brightness(1.01) !important;
+}
+
+@media (max-width: 640px) {
+  .hero {
+    width: 100% !important;
+    max-width: none !important;
+    padding-top: 7px !important;
+    padding-bottom: 7px !important;
+  }
+}
+/* Final spacing pass: poem line, borderless today list, editor breathing room. */
+.hero > div:first-child {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) !important;
+  align-items: end !important;
+  column-gap: 10px !important;
+  row-gap: 2px !important;
+}
+
+.hero .daily-poem {
+  grid-column: 1 / -1 !important;
+  display: block !important;
+  width: 100% !important;
+  max-width: none !important;
+  margin: 4px 0 0 !important;
+  padding: 0 !important;
+  text-align: left !important;
+  white-space: normal !important;
+}
+
+#todayCourseList,
+.today-course-list,
+#todayCourseList > *,
+.today-course-list > *,
+.today-course,
+.today-course:hover,
+.today-course:active {
+  border: 0 !important;
+  border-top: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.today-course + .today-course {
+  border-top: 0 !important;
+}
+
+#todayCourseList::before,
+#todayCourseList::after,
+.today-course-list::before,
+.today-course-list::after,
+.today-course::before,
+.today-course::after {
+  content: none !important;
+  display: none !important;
+}
+
+#editPage .course-form {
+  display: grid !important;
+  gap: 14px !important;
+}
+
+#editPage .course-form .form-row {
+  gap: 14px !important;
+  margin-bottom: 2px !important;
+}
+
+#editPage .course-form .form-row:last-of-type {
+  margin-bottom: 14px !important;
+}
+
+#editPage .form-actions {
+  margin-top: 8px !important;
+  padding-top: 8px !important;
+  gap: 12px !important;
+}
+
+@media (max-width: 640px) {
+  .hero > div:first-child {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .hero .daily-poem {
+    margin-top: 3px !important;
+  }
+
+  #editPage .course-form {
+    gap: 12px !important;
+  }
+
+  #editPage .form-actions {
+    margin-top: 10px !important;
   }
 }

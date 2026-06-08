@@ -9,15 +9,17 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="overrides.css">
 </head>
 <body>
   <div class="bg-layer" id="bgLayer"></div>
   <main class="shell">
     <header class="hero">
-      <div>
-        <p class="eyebrow" id="todayText">今天</p>
-        <h1>课程表</h1>
-        <p class="daily-poem" id="dailyPoem">诗句将由脚本填充。</p>
+      <div class="hero-copy">
+        <div class="hero-titleline">
+          <p class="eyebrow" id="todayText">今天</p>
+          <h1>课程表</h1>
+        </div>
       </div>
       <div class="week-switcher">
         <button class="icon-button" id="prevWeekBtn" type="button" aria-label="上一周">‹</button>
@@ -59,7 +61,6 @@
             <p id="activeDayText">本周课表</p>
             <h2 id="courseCount">周视图</h2>
           </div>
-          <button class="primary" id="addBtn" type="button">添加课程</button>
         </div>
         <div class="timetable" id="courseList" aria-label="周课表">
           <div class="timetable-empty">课程块将由脚本填充。</div>
@@ -132,7 +133,7 @@
         <div class="section-title">
           <div>
             <p>设置</p>
-            <h2>课表偏好</h2>
+            <h2>课表设置</h2>
           </div>
         </div>
         <div class="settings-stack">

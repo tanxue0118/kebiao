@@ -526,6 +526,7 @@ function renderTimetable() {
   els.courseList.style.setProperty('--cell-radius', `${settings.cellRadius}px`);
   els.courseList.style.setProperty('--cell-gap', `${settings.cellGap}px`);
   els.courseList.style.setProperty('--course-opacity', String(settings.courseOpacity));
+  els.courseList.style.setProperty('--visible-day-count', String(visibleDays.length));
   const fragment = document.createDocumentFragment();
 
   const timetable = document.createElement('div');
@@ -955,7 +956,7 @@ function injectTimetableStyles() {
     #courseList .timetable-grid {
       align-items: stretch;
       isolation: isolate;
-      overflow-x: auto;
+      overflow-x: hidden;
       padding-bottom: 10px;
     }
     #courseList .timetable-header,
@@ -995,6 +996,7 @@ function injectTimetableStyles() {
       cursor: pointer;
       min-width: 0;
       padding: 10px;
+      animation: none;
     }
     #courseList .timetable-course h3 {
       font-size: clamp(14px, 1.8vw, 18px);

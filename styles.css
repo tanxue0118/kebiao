@@ -4794,6 +4794,108 @@ html {
   grid-template-columns: minmax(0, 1fr);
 }
 
+/* Mobile performance and one-screen timetable fit. */
+#courseList .timetable-grid {
+  overflow-x: hidden !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+#courseList .timetable-course {
+  animation: none !important;
+  transition: background-color .10s ease, border-color .10s ease !important;
+  will-change: auto !important;
+}
+
+.page.active {
+  animation-duration: .10s !important;
+}
+
+button,
+.file-button,
+.app-tabs button {
+  transition-duration: .10s !important;
+}
+
+@media (max-width: 640px) {
+  #courseList.timetable {
+    gap: 8px !important;
+  }
+
+  #courseList .timetable-grid {
+    --time-rail-width: 40px !important;
+    --day-min-width: 0px !important;
+    grid-template-columns: var(--time-rail-width) repeat(var(--visible-day-count, 5), minmax(0, 1fr)) !important;
+    gap: 3px !important;
+    padding: 6px !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: auto !important;
+  }
+
+  #courseList .timetable-header {
+    min-height: 32px !important;
+    padding: 4px 2px !important;
+    font-size: 11px !important;
+    line-height: 1.15 !important;
+    white-space: nowrap;
+  }
+
+  #courseList .time-cell {
+    padding: 4px 2px !important;
+    font-size: 9px !important;
+    line-height: 1.15 !important;
+    word-break: keep-all;
+  }
+
+  #courseList .time-cell strong {
+    font-size: 12px !important;
+  }
+
+  #courseList .timetable-cell {
+    min-width: 0 !important;
+    border-radius: max(6px, calc(var(--cell-radius) * .72)) !important;
+  }
+
+  #courseList .timetable-course {
+    min-width: 0 !important;
+    padding: 5px 3px !important;
+    border-radius: max(6px, calc(var(--cell-radius) * .72)) !important;
+  }
+
+  #courseList .timetable-course h3 {
+    font-size: 10px !important;
+    line-height: 1.18 !important;
+    margin-bottom: 3px !important;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  #courseList .timetable-course .course-meta {
+    gap: 2px !important;
+  }
+
+  #courseList .timetable-course .course-meta span {
+    max-width: 100%;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    font-size: 8px !important;
+    line-height: 1.15 !important;
+    overflow-wrap: anywhere;
+  }
+
+  #courseList .timetable-course[data-span="1"] .course-meta span:nth-child(n + 3) {
+    display: none;
+  }
+
+  .app-tabs {
+    bottom: max(8px, env(safe-area-inset-bottom)) !important;
+  }
+}
+
 /* Absolute final authority: big cards consume blur; opacity only controls tint. */
 .data-actions {
   display: grid;

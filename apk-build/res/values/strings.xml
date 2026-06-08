@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">课程表</string>
+    <string name="app_name">&#x8BFE;&#x7A0B;&#x8868;</string>
+    <string name="widget_title">&#x4ECA;&#x65E5;&#x8BFE;&#x7A0B;</string>
 </resources>

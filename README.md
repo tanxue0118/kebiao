@@ -4,7 +4,7 @@
 
 [![Release](https://img.shields.io/github/v/release/tanxue0118/kebiao?display_name=tag)](https://github.com/tanxue0118/kebiao/releases/latest)
 [![License](https://img.shields.io/badge/license-MIT-2ea44f)](./LICENSE)
-
+![GitHub Repo stars](https://img.shields.io/github/stars/tanxue0118/kebiao)
 ## 预览
 
 <p align="center">

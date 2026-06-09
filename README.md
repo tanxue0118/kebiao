@@ -1,175 +1,92 @@
 # 课程表
 
-一个轻量、可本地编辑、支持 Android 小组件的课程表应用。项目主体是静态 Web 页面，Android 版使用原生 WebView 打包，并额外提供桌面小组件。
+一款给自己和舍友用的轻量课程表应用。第一次打开会默认读取我的课表；如果你要给自己用，直接一键清空，再导入自己的 JSON 就行。
 
-默认远程课表来源：
+[![Release](https://img.shields.io/github/v/release/tanxue0118/kebiao?display_name=tag)](https://github.com/tanxue0118/kebiao/releases/latest)
+[![License](https://img.shields.io/badge/license-MIT-2ea44f)](./LICENSE)
 
-```text
-https://raw.githubusercontent.com/tanxue0118/kebiao/main/schedule.json
-```
+## 预览
 
-未清空课表时，应用启动会自动读取 GitHub 上的 `schedule.json`，并和本地修改合并。一键清空课表后，会停止自动读取远程课表，避免课程又被同步回来；重新导入 JSON 或手动新增课程后会恢复自动读取能力。
+<p align="center">
+  <img src="docs/readme/week-preview-v2.jpg" alt="周课表预览" width="96%" />
+</p>
 
-## 功能
+<p align="center">
+  <img src="docs/readme/widget-preview-large-readme2.png" alt="小组件预览 1" width="48%" />
+  <img src="docs/readme/widget-preview-small-readme2.png" alt="小组件预览 2" width="48%" />
+</p>
 
-- 今日课程：显示今天要上的课，已经上完的课程会划线。
-- 周课表：按星期和节次展示课程，手机端适配一屏查看。
-- 本地编辑：点击课程编辑，点击课表空白格新增课程。
-- 周次切换：移动端和电脑端都可左右滑动/拖拽切换周次，也可点击顶部周次直接选择。
-- 课程表单：星期、周次、节次、单双周均为应用内选择面板，不依赖系统下拉 UI。
-- 自定义时间：默认使用节次时间；开启“自定义时间”后，可为单门课程设置独立开始/结束时间。
-- JSON 导入导出：支持一键清空、导入 JSON、导出当前课表。
-- 个性化：支持背景图、显示字段、格子高度、圆角、间距、课程透明度、卡片透明度等设置。
-- Android 小组件：提供今日课程小/中/大号组件，以及本周剩余课程组件。
-- 小组件同步：WebView 内编辑、导入、清空课表后，会通过 Android 桥接同步给桌面小组件并主动刷新。
+## 特点
 
-## 为什么 APK 可以这么轻量
+- 开箱就能看：首次打开默认拉取仓库里的默认课表源，不用先做任何配置。
+- 改课很顺手：点课程直接编辑，点空白处就能新增，导入、导出、一键清空都在同一套流程里。
+- 看法更贴近日常：今日概览、周课表和桌面小组件一起做，平时最常看的信息都在。
+- 课表更灵活：支持自定义节次时间、单门课程自定义时间、单双周、周次范围等常见排课方式。
+- 样式能按习惯调：背景、显示字段、圆角、间距、格子高度、透明度等个性化配置都保留了。
+- 小组件也会同步：Web 端保存后会刷新 Android 桌面小组件，尽量保持应用里看到的内容一致。
 
-这个 APK 没有使用 React Native、Flutter、Electron、Tauri 这类大型运行时，也没有把一整个前端工程和依赖树塞进安装包。它的核心结构很简单：
+## 默认行为
 
-- Web 页面只有 `index.html`、`styles.css`、`overrides.css`、`app.js` 和课表 JSON。
-- Android 侧只保留一个 `MainActivity`，用系统自带 WebView 加载 `file:///android_asset/www/index.html`。
-- 桌面小组件使用原生 `AppWidgetProvider` 和 XML 布局，不依赖网页运行。
-- 不打包图片资源库、字体包、构建框架产物或第三方 UI 库。
-- 课程数据是 JSON，本地缓存用浏览器 `localStorage` 和 Android `SharedPreferences`，不需要数据库。
+- 首次打开会读取默认课表源。
+- 默认课表就是我和舍友共用的那份。
+- 如果你不是这份课表的使用者，直接一键清空就行。
+- 清空后会停止远程读取，后续不会再自动把课程同步回来。
+- 重新导入 JSON 或手动新增课程后，会恢复自动读取能力。
 
-因此 APK 主要由少量静态 Web 文件、Android 资源、Java 类和签名信息组成，体积可以保持在很小的范围内。功能复杂度放在轻量的业务逻辑里，而不是放在沉重的运行时里。
+## 快速上手
 
-## 项目结构
+1. 先正常打开应用。
+2. 如果要自己使用，先点一键清空。
+3. 导入自己的课表 JSON。
+4. 需要改课时，直接点课表里的课程或空白格。
 
-```text
-.
-├── index.html                 # 页面结构
-├── styles.css                 # 基础样式
-├── overrides.css              # 后期 UI 覆盖、移动端和交互优化
-├── app.js                     # 课表逻辑、渲染、本地保存、导入导出
-├── schedule.json              # 默认正式课表数据
-├── schedule.example.json      # 示例课表数据
-├── 编写规则.md                # 给 AI 或人工编写课表 JSON 的规则
-├── apk-build/
-│   ├── AndroidManifest.xml
-│   ├── assets/www/            # 打包进 APK 的 Web 文件
-│   ├── res/                   # Android 资源、小组件布局与图标
-│   └── src/com/tanxue/kebiao/ # MainActivity、桥接和小组件 Provider
-└── dist/
-    ├── kebiao.apk
-    └── 课程表.apk
-```
+## 为什么 APK 这么轻
 
-## JSON 格式
+因为它没有把一整套重型跨端运行时塞进安装包里。
 
-根对象建议包含：
+- 页面本体就是 `HTML + CSS + JavaScript`
+- Android 侧只负责 WebView 壳和原生小组件
+- 不依赖 React Native、Flutter、Electron 这类大运行时
+- 不带数据库和一堆第三方 UI 包
+- 课表数据直接用 JSON，本地保存也只是 `localStorage` 和 `SharedPreferences`
+
+所以安装包主要是静态页面、少量 Java 类和 Android 资源，体积小，启动也快。
+
+## 课表格式
+
+详细字段规则和 AI 编写模板见 [编写规则.md](./编写规则.md)。
+
+下面是一个简化示例，方便快速理解结构：
 
 ```json
 {
-  "semesterStart": "2026-03-02",
-  "semesterWeeks": 16,
-  "timeSlots": [],
-  "courses": []
+  "courses": [
+    {
+      "id": "linear-algebra",
+      "name": "线性代数",
+      "teacher": "路老师",
+      "position": "厚德楼A305",
+      "day": 1,
+      "startSection": 5,
+      "endSection": 6,
+      "weeks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+    }
+  ]
 }
 ```
 
-也兼容：
+如果是考试、临时安排或需要自定义时间的课程，直接看 [编写规则.md](./编写规则.md) 里的完整写法。
 
-```json
-{
-  "config": {
-    "semesterStartDate": "2026-03-02",
-    "semesterTotalWeeks": 16
-  },
-  "timeSlots": [],
-  "courses": []
-}
-```
+## 下载
 
-### timeSlots
+- 仓库：[tanxue0118/kebiao](https://github.com/tanxue0118/kebiao)
+- Release：[latest](https://github.com/tanxue0118/kebiao/releases/latest)
+- APK：[kebiao.apk](https://github.com/tanxue0118/kebiao/releases/latest/download/kebiao.apk)
 
-`timeSlots` 定义每节课的默认时间：
+## 开源协议
 
-```json
-[
-  { "number": 1, "startTime": "08:00", "endTime": "08:45" },
-  { "number": 2, "startTime": "08:55", "endTime": "09:40" }
-]
-```
+本项目采用 [MIT License](./LICENSE)。
 
-字段说明：
+## Star 趋势
 
-- `number`：节次编号。
-- `startTime`：开始时间，格式 `HH:mm`。
-- `endTime`：结束时间，格式 `HH:mm`。
-
-### courses
-
-课程对象示例：
-
-```json
-{
-  "id": "linear-algebra",
-  "name": "线性代数",
-  "teacher": "路老师",
-  "location": "厚德楼 A305",
-  "dayOfWeek": 1,
-  "weeks": "1-16",
-  "weekParity": "all",
-  "startSection": 5,
-  "endSection": 6
-}
-```
-
-字段说明：
-
-- `id`：课程唯一 ID。建议填写英文、拼音或 UUID；不填时应用会自动生成。
-- `name`：课程名。
-- `teacher`：老师。
-- `location`：地点。也兼容 `position`、`room`。
-- `dayOfWeek`：星期几，`1` 到 `7` 分别表示周一到周日。也兼容 `day`、`weekday`。
-- `weeks`：上课周次，支持 `"1-16"`、`"1-8,10,12-16"` 或 `[1,2,3]`。
-- `weekParity`：单双周，`all` 表示每周，`odd` 表示单周，`even` 表示双周。
-- `startSection`：开始节次。
-- `endSection`：结束节次。
-- `customTimeEnabled`：是否启用该课程的自定义时间，可选。
-- `startTime` / `endTime`：该课程自定义时间，可选；不开启自定义时间时会使用节次默认时间。
-
-临时考试示例：
-
-```json
-{
-  "id": "exam-c-language",
-  "name": "C 语言考试",
-  "teacher": "",
-  "location": "4-102",
-  "dayOfWeek": 1,
-  "weeks": "17",
-  "weekParity": "all",
-  "customTimeEnabled": true,
-  "startTime": "15:00",
-  "endTime": "17:00"
-}
-```
-
-## 本地保存和远程读取
-
-- 第一次打开时会加载内置或远程 `schedule.json`。
-- 本地新增、编辑、删除课程会保存到浏览器本地缓存。
-- Android 版会把当前课表同步到 `SharedPreferences`，供小组件读取。
-- 自动读取 GitHub 课表时，会和本地课程合并。
-- 删除过的课程 ID 会记录下来，避免远程同步后又恢复。
-- 一键清空课表后，会停止自动读取远程课表。
-- 导入 JSON 或手动新增课程后，会恢复自动读取远程课表。
-
-## Android 小组件
-
-APK 提供四种桌面小组件：
-
-- 今日课程小号：适合 2x2，只显示课程和节次。
-- 今日课程中号：显示更多今日课程信息。
-- 今日课程大号：显示更多课程、时间和地点。
-- 本周课表：显示本周剩余课程，已过去的天和已上完的课会隐藏。
-
-小组件读取顺序：
-
-1. 优先读取应用通过 `ScheduleBridge` 写入的 Android 本地缓存。
-2. 如果没有缓存，则读取 APK 内置的 `assets/www/schedule.json`。
-
-这意味着在 Android 应用里新增、编辑、导入或清空课程后，小组件会主动刷新。Android 系统仍可能对小组件定时刷新做节流，所以这里的“实时”主要指应用内事件触发刷新。
+[![Star History Chart](https://api.star-history.com/svg?repos=tanxue0118/kebiao&type=Date)](https://star-history.com/#tanxue0118/kebiao&Date)

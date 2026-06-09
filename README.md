@@ -87,4 +87,6 @@
 
 ## Star 趋势
 
+## Star History
+
 [![Star History Chart](https://api.star-history.com/chart?repos=tanxue0118/kebiao&type=date&logscale&legend=top-left)](https://www.star-history.com/?repos=tanxue0118%2Fkebiao&type=date&logscale=&legend=top-left)

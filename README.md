@@ -4,16 +4,16 @@
 
 [![Release](https://img.shields.io/github/v/release/tanxue0118/kebiao?display_name=tag)](https://github.com/tanxue0118/kebiao/releases/latest)
 [![License](https://img.shields.io/badge/license-MIT-2ea44f)](./LICENSE)
+![GitHub Repo stars](https://img.shields.io/github/stars/tanxue0118/kebiao)
 
 ## 预览
 
 <p align="center">
-  <img src="docs/readme/week-preview-v2.jpg" alt="周课表预览" width="96%" />
+  <img src="picture/课表预览.jpg" alt="课表预览" width="96%" />
 </p>
 
 <p align="center">
-  <img src="docs/readme/widget-preview-large-readme2.png" alt="小组件预览 1" width="48%" />
-  <img src="docs/readme/widget-preview-small-readme2.png" alt="小组件预览 2" width="48%" />
+  <img src="picture/小组件预览.jpg" alt="小组件预览" width="48%" />
 </p>
 
 ## 特点
@@ -86,7 +86,3 @@
 ## 开源协议
 
 本项目采用 [MIT License](./LICENSE)。
-
-## Star 趋势
-
-[![Star History Chart](https://api.star-history.com/svg?repos=tanxue0118/kebiao&type=Date)](https://star-history.com/#tanxue0118/kebiao&Date)

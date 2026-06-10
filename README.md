@@ -81,7 +81,16 @@
 
 - 仓库：[tanxue0118/kebiao](https://github.com/tanxue0118/kebiao)
 - Release：[latest](https://github.com/tanxue0118/kebiao/releases/latest)
-- APK：[kebiao.apk](https://github.com/tanxue0118/kebiao/releases/latest/download/kebiao.apk)
+
+## Star 趋势
+
+<a href="https://www.star-history.com/?repos=tanxue0118%2Fkebiao&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=tanxue0118/kebiao&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=tanxue0118/kebiao&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=tanxue0118/kebiao&type=date&legend=top-left" />
+ </picture>
+</a>
 
 ## 开源协议
 

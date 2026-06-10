@@ -6,5 +6,6 @@
     android:minResizeHeight="160dp"
     android:updatePeriodMillis="1800000"
     android:initialLayout="@layout/widget_week_courses"
+    android:previewImage="@drawable/widget_preview_week"
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen" />

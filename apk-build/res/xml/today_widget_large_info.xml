@@ -6,5 +6,6 @@
     android:minResizeHeight="140dp"
     android:updatePeriodMillis="1800000"
     android:initialLayout="@layout/widget_today_courses_large"
+    android:previewImage="@drawable/widget_preview_today_large"
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen" />

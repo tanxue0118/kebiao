@@ -142,7 +142,6 @@ const els = {
   clearScheduleBtn: document.getElementById('clearScheduleBtn'),
   importScheduleInput: document.getElementById('importScheduleInput'),
   exportScheduleBtn: document.getElementById('exportScheduleBtn'),
-  timeSlotsText: document.getElementById('timeSlotsText'),
   saveTimeSlotsBtn: document.getElementById('saveTimeSlotsBtn'),
   bgLayer: document.getElementById('bgLayer'),
   todaySummary: document.getElementById('todaySummary'),
@@ -206,6 +205,10 @@ function init() {
   document.querySelector('.week-chip')?.addEventListener('click', openWeekPicker);
   bindWeekSwipe();
   window.addEventListener('resize', debounce(renderTimetable, 160));
+  window.setInterval(renderToday, 60000);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) renderToday();
+  });
 
   syncScheduleToAndroid();
   if (document.getElementById('todayPage')) showPage('todayPage');
@@ -412,15 +415,37 @@ function mergeRemoteWithLocal(remote, local) {
 
 function saveCourse(event) {
   event.preventDefault();
-  const startSection = Number(els.fields.startSection.value);
-  const endSection = Number(els.fields.endSection.value);
   const useCustomTime = Boolean(els.fields.customTimeEnabled?.checked);
-  const startTime = useCustomTime
-    ? els.fields.startTime.value
-    : (getSlotTime(startSection, 'startTime') || els.fields.startTime.value);
-  const endTime = useCustomTime
-    ? els.fields.endTime.value
-    : (getSlotTime(endSection, 'endTime') || els.fields.endTime.value);
+  let startSection;
+  let endSection;
+  let startTime;
+  let endTime;
+
+  if (useCustomTime) {
+    startTime = els.fields.startTime.value;
+    endTime = els.fields.endTime.value;
+    if (!startTime || !endTime) {
+      showStatus('请填写自定义开始和结束时间');
+      return;
+    }
+    if (timeToMinutes(endTime) <= timeToMinutes(startTime)) {
+      showStatus('结束时间需晚于开始时间');
+      return;
+    }
+    startSection = findSlotByTime(state.timeSlots, startTime, 'startTime') || 1;
+    endSection = findSlotByTime(state.timeSlots, endTime, 'endTime') || startSection;
+    if (endSection < startSection) endSection = startSection;
+  } else {
+    startSection = Number(els.fields.startSection.value);
+    endSection = Number(els.fields.endSection.value);
+    if (endSection < startSection) {
+      showStatus('结束节不能早于开始节');
+      return;
+    }
+    startTime = getSlotTime(startSection, 'startTime') || els.fields.startTime.value;
+    endTime = getSlotTime(endSection, 'endTime') || els.fields.endTime.value;
+  }
+
   const course = {
     id: els.fields.id.value || createId(),
     name: els.fields.name.value.trim(),
@@ -436,16 +461,10 @@ function saveCourse(event) {
     endTime
   };
 
-  if (endSection < startSection) {
-    showStatus('结束节不能早于开始节');
-    return;
-  }
-
   const existingIndex = state.courses.findIndex((item) => item.id === course.id);
   if (existingIndex >= 0) state.courses[existingIndex] = course;
   else state.courses.push(course);
 
-  enableRemoteSchedule();
   removeDeletedId(course.id);
   activeDay = course.dayOfWeek;
   persist();
@@ -781,7 +800,10 @@ function renderTimetable() {
     fragment.appendChild(empty);
   }
 
-  els.courseList.replaceChildren(fragment);
+  const track = document.createElement('div');
+  track.className = 'timetable-track';
+  track.appendChild(fragment);
+  els.courseList.replaceChildren(track);
 }
 
 function renderToday() {
@@ -963,7 +985,7 @@ function ensureSettingsControls() {
       <label class="field"><span>学期开始日期</span><input id="semesterStart" type="date"></label>
       <label class="field"><span>总周数</span><input id="semesterWeeks" type="number" min="1" max="30"></label>
     </div>
-    <label class="field"><span>假期周/日期范围</span><input id="holidayRanges" placeholder="7, 10-11 或 2025-10-01..2025-10-07"></label>
+    <div class="picker-field"><span>假期周/日期范围</span><div id="holidayList" class="picker-list"></div><button type="button" id="addHolidayBtn" class="picker-add">+ 添加假期</button></div>
     <fieldset class="field" id="visibleFields">
       <legend>课程块字段</legend>
       <label><input type="checkbox" value="teacher"> 老师</label>
@@ -990,7 +1012,6 @@ function bindSettingsControls() {
     showWeekend: getByIds('showWeekend', 'settingShowWeekend'),
     semesterStart: getByIds('semesterStart', 'semesterStartDate', 'settingSemesterStart'),
     semesterWeeks: getByIds('semesterWeeks', 'semesterTotalWeeks', 'settingSemesterWeeks'),
-    holidayRanges: getByIds('holidayRanges', 'holidayWeeks', 'settingHolidayRanges'),
     visibleFields: getByIds('visibleFields', 'visibleCourseFields', 'settingVisibleFields'),
     cellHeight: getByIds('cellHeight', 'settingCellHeight'),
     cellRadius: getByIds('cellRadius', 'settingCellRadius'),
@@ -1001,6 +1022,8 @@ function bindSettingsControls() {
 
   writeSettingsControls();
   writeTimeSlotsControl();
+  document.getElementById('addHolidayBtn')?.addEventListener('click', addHolidayRow);
+  document.getElementById('addTimeSlotBtn')?.addEventListener('click', addTimeSlotRow);
   Object.values(els.settings).forEach((control) => {
     if (!control) return;
     control.addEventListener('input', readSettingsControls);
@@ -1079,7 +1102,7 @@ function writeSettingsControls() {
   if (els.settings.showWeekend) els.settings.showWeekend.checked = settings.showWeekend;
   if (els.settings.semesterStart) els.settings.semesterStart.value = settings.semesterStart;
   if (els.settings.semesterWeeks) els.settings.semesterWeeks.value = settings.semesterWeeks;
-  if (els.settings.holidayRanges) els.settings.holidayRanges.value = settings.holidayRanges;
+  renderHolidayRows();
   if (els.settings.cellHeight) els.settings.cellHeight.value = settings.cellHeight;
   if (els.settings.cellRadius) els.settings.cellRadius.value = settings.cellRadius;
   if (els.settings.cellGap) els.settings.cellGap.value = settings.cellGap;
@@ -1091,20 +1114,72 @@ function writeSettingsControls() {
 }
 
 function writeTimeSlotsControl() {
-  if (!els.timeSlotsText) return;
-  els.timeSlotsText.value = formatTimeSlotsText(state.timeSlots);
+  const list = document.getElementById('timeSlotList');
+  if (!list) return;
+  const slots = normalizeTimeSlots(state.timeSlots);
+  list.replaceChildren(...slots.map((slot, index) => createTimeSlotRow(index + 1, slot.startTime, slot.endTime)));
 }
 
-function formatTimeSlotsText(slots) {
-  return normalizeTimeSlots(slots)
-    .map((slot) => `${slot.number} ${slot.startTime || ''}-${slot.endTime || ''}`.trim())
-    .join('\n');
+function createTimeSlotRow(number, startTime = '', endTime = '') {
+  const row = document.createElement('div');
+  row.className = 'picker-row time-slot-row';
+  const numberEl = document.createElement('span');
+  numberEl.className = 'slot-number';
+  numberEl.textContent = `第${number}节`;
+  const start = document.createElement('input');
+  start.type = 'time';
+  start.className = 'slot-start';
+  start.value = startTime || '';
+  const sep = document.createElement('span');
+  sep.className = 'picker-sep';
+  sep.textContent = '-';
+  const end = document.createElement('input');
+  end.type = 'time';
+  end.className = 'slot-end';
+  end.value = endTime || '';
+  const remove = document.createElement('button');
+  remove.type = 'button';
+  remove.className = 'picker-remove';
+  remove.setAttribute('aria-label', '删除节次');
+  remove.textContent = '×';
+  remove.addEventListener('click', () => {
+    row.remove();
+    renumberTimeSlotRows();
+  });
+  row.append(numberEl, start, sep, end, remove);
+  return row;
+}
+
+function renumberTimeSlotRows() {
+  const list = document.getElementById('timeSlotList');
+  if (!list) return;
+  [...list.querySelectorAll('.time-slot-row .slot-number')].forEach((el, index) => {
+    el.textContent = `第${index + 1}节`;
+  });
+}
+
+function addTimeSlotRow() {
+  const list = document.getElementById('timeSlotList');
+  if (!list) return;
+  const count = list.querySelectorAll('.time-slot-row').length;
+  list.appendChild(createTimeSlotRow(count + 1));
+  renumberTimeSlotRows();
 }
 
 function saveTimeSlots() {
-  if (!els.timeSlotsText) return;
+  const list = document.getElementById('timeSlotList');
+  if (!list) return;
   try {
-    state.timeSlots = parseTimeSlotsText(els.timeSlotsText.value);
+    const rows = [...list.querySelectorAll('.time-slot-row')];
+    if (!rows.length) throw new Error('至少保留一节课时间');
+    const slots = rows.map((row, index) => {
+      const startTime = row.querySelector('.slot-start')?.value || '';
+      const endTime = row.querySelector('.slot-end')?.value || '';
+      if (!startTime || !endTime) throw new Error(`第 ${index + 1} 节请选择开始和结束时间`);
+      if (timeToMinutes(endTime) <= timeToMinutes(startTime)) throw new Error(`第 ${index + 1} 节结束时间需晚于开始时间`);
+      return { number: index + 1, startTime, endTime };
+    });
+    state.timeSlots = normalizeTimeSlots(slots);
     state = normalizeSchedule(state);
     persist();
     writeTimeSlotsControl();
@@ -1118,29 +1193,83 @@ function saveTimeSlots() {
   }
 }
 
-function parseTimeSlotsText(value) {
-  const lines = String(value)
-    .split(/\r?\n/)
-    .map((line) => line.trim())
+function getHolidayTokens() {
+  return String(settings.holidayRanges || '')
+    .split(/[,，;\n]/)
+    .map((part) => part.trim())
     .filter(Boolean);
-  if (!lines.length) throw new Error('至少填写一节课时间');
+}
 
-  const slots = lines.map((line, index) => {
-    const match = line.match(/^(\d+)?\s*([0-2]\d:[0-5]\d)\s*[-~—–]\s*([0-2]\d:[0-5]\d)$/);
-    if (!match) throw new Error(`第 ${index + 1} 行应为“1 08:00-08:45”`);
-    const number = Number(match[1] || index + 1);
-    const startTime = match[2];
-    const endTime = match[3];
-    if (timeToMinutes(endTime) <= timeToMinutes(startTime)) throw new Error(`第 ${index + 1} 行结束时间需晚于开始时间`);
-    return { number, startTime, endTime };
-  });
+function splitHolidayDateToken(token) {
+  const parts = token.split(/\.\.|~|至|到/).map((item) => item.trim());
+  if (parts.length === 2 && isDateText(parts[0]) && isDateText(parts[1])) {
+    return { start: parts[0], end: parts[1] };
+  }
+  return null;
+}
 
-  const seen = new Set();
-  slots.forEach((slot) => {
-    if (seen.has(slot.number)) throw new Error(`第 ${slot.number} 节重复`);
-    seen.add(slot.number);
+function createHolidayRow(start = '', end = '') {
+  const row = document.createElement('div');
+  row.className = 'picker-row holiday-row';
+  const startInput = document.createElement('input');
+  startInput.type = 'date';
+  startInput.className = 'holiday-start';
+  startInput.value = start || '';
+  const sep = document.createElement('span');
+  sep.className = 'picker-sep';
+  sep.textContent = '~';
+  const endInput = document.createElement('input');
+  endInput.type = 'date';
+  endInput.className = 'holiday-end';
+  endInput.value = end || '';
+  const remove = document.createElement('button');
+  remove.type = 'button';
+  remove.className = 'picker-remove';
+  remove.setAttribute('aria-label', '删除假期');
+  remove.textContent = '×';
+  remove.addEventListener('click', () => {
+    row.remove();
+    readHolidayRows();
   });
-  return normalizeTimeSlots(slots);
+  startInput.addEventListener('change', readHolidayRows);
+  endInput.addEventListener('change', readHolidayRows);
+  row.append(startInput, sep, endInput, remove);
+  return row;
+}
+
+function renderHolidayRows() {
+  const list = document.getElementById('holidayList');
+  if (!list) return;
+  const rows = getHolidayTokens()
+    .map(splitHolidayDateToken)
+    .filter(Boolean)
+    .map((range) => createHolidayRow(range.start, range.end));
+  list.replaceChildren(...rows);
+}
+
+function readHolidayRows() {
+  const list = document.getElementById('holidayList');
+  if (!list) return;
+  const dateTokens = [...list.querySelectorAll('.holiday-row')]
+    .map((row) => {
+      const start = row.querySelector('.holiday-start')?.value || '';
+      const end = row.querySelector('.holiday-end')?.value || '';
+      return start && end ? `${start}..${end}` : '';
+    })
+    .filter(Boolean);
+  const weekTokens = getHolidayTokens().filter((token) => !splitHolidayDateToken(token));
+  settings.holidayRanges = [...dateTokens, ...weekTokens].join(', ');
+  holidayRangeCacheKey = null;
+  persistSettingsSoon();
+  renderWeek();
+  renderTimetable();
+  renderToday();
+}
+
+function addHolidayRow() {
+  const list = document.getElementById('holidayList');
+  if (!list) return;
+  list.appendChild(createHolidayRow());
 }
 
 function readSettingsControls() {
@@ -1149,7 +1278,6 @@ function readSettingsControls() {
     showWeekend: Boolean(els.settings.showWeekend?.checked),
     semesterStart: els.settings.semesterStart?.value || state.semesterStart,
     semesterWeeks: toPositiveInt(els.settings.semesterWeeks?.value, state.semesterWeeks),
-    holidayRanges: els.settings.holidayRanges?.value || '',
     visibleFields: getVisibleFieldInputs().filter((input) => input.checked).map((input) => input.value),
     cellHeight: toPositiveInt(els.settings.cellHeight?.value, DEFAULT_SETTINGS.cellHeight),
     cellRadius: toPositiveInt(els.settings.cellRadius?.value, DEFAULT_SETTINGS.cellRadius),
@@ -1389,6 +1517,8 @@ function updateCustomTimeControls() {
   const enabled = Boolean(els.fields.customTimeEnabled?.checked);
   const row = document.getElementById('customTimeRow');
   if (row) row.hidden = !enabled;
+  const sectionRow = document.getElementById('sectionRow');
+  if (sectionRow) sectionRow.hidden = enabled;
   if (els.fields.startTime) els.fields.startTime.disabled = !enabled;
   if (els.fields.endTime) els.fields.endTime.disabled = !enabled;
 }
@@ -1486,10 +1616,6 @@ function disableRemoteSchedule() {
   localStorage.setItem(REMOTE_DISABLED_KEY, '1');
 }
 
-function enableRemoteSchedule() {
-  localStorage.removeItem(REMOTE_DISABLED_KEY);
-}
-
 function refreshScheduleView(message) {
   activeWeek = clampMinWeek(getCurrentWeek(getSemesterStart()));
   writeSettingsControls();
@@ -1537,7 +1663,6 @@ function importScheduleJson(event) {
       holidayRangeCacheKey = null;
       weekMatchCache.clear();
       localStorage.removeItem(DELETED_KEY);
-      enableRemoteSchedule();
       localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
       persist();
       refreshScheduleView('JSON 课表已导入');
@@ -1609,42 +1734,115 @@ function changeWeek(delta) {
 }
 
 function bindWeekSwipe() {
-  if (!els.courseList) return;
+  const viewport = els.courseList;
+  if (!viewport) return;
+
+  const prefersReducedMotion = () =>
+    Boolean(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const getTrack = () => viewport.querySelector('.timetable-track');
+
   let startX = 0;
   let startY = 0;
-  let startTime = 0;
-  const finishSwipe = (clientX, clientY) => {
-    if (!startTime) return;
-    const dx = clientX - startX;
-    const dy = clientY - startY;
-    const elapsed = Date.now() - startTime;
-    startTime = 0;
-    if (elapsed > 800 || Math.abs(dx) < 64 || Math.abs(dx) < Math.abs(dy) * 1.35) return;
-    suppressGridClickUntil = Date.now() + 260;
-    changeWeek(dx < 0 ? 1 : -1);
+  let active = false;
+  let locked = false;
+  let animating = false;
+  let width = 1;
+
+  const commitWeek = (dir, track) => {
+    suppressGridClickUntil = Date.now() + 400;
+    if (prefersReducedMotion() || !track) {
+      changeWeek(dir);
+      return;
+    }
+    animating = true;
+    const out = dir === 1 ? -100 : 100;
+    let done = false;
+    const finishAnim = (event) => {
+      if (event && event.target !== track) return;
+      if (done) return;
+      done = true;
+      track.removeEventListener('transitionend', finishAnim);
+      changeWeek(dir);
+      const next = getTrack();
+      if (next) {
+        next.style.transition = 'none';
+        next.style.transform = `translateX(${-out}%)`;
+        void next.offsetWidth;
+        next.style.transition = 'transform .22s ease';
+        next.style.transform = 'translateX(0)';
+      }
+      animating = false;
+    };
+    track.style.transition = 'transform .22s ease';
+    window.requestAnimationFrame(() => {
+      track.style.transform = `translateX(${out}%)`;
+    });
+    track.addEventListener('transitionend', finishAnim);
+    window.setTimeout(finishAnim, 360);
   };
-  els.courseList.addEventListener('touchstart', (event) => {
-    const touch = event.touches?.[0];
-    if (!touch) return;
-    startX = touch.clientX;
-    startY = touch.clientY;
-    startTime = Date.now();
-  }, { passive: true });
-  els.courseList.addEventListener('touchend', (event) => {
-    const touch = event.changedTouches?.[0];
-    if (!touch) return;
-    finishSwipe(touch.clientX, touch.clientY);
-  }, { passive: true });
-  els.courseList.addEventListener('pointerdown', (event) => {
-    if (event.pointerType === 'touch') return;
-    if (event.target.closest('.timetable-course, button, input, textarea, select')) return;
+
+  viewport.addEventListener('pointerdown', (event) => {
+    if (animating) return;
+    if (event.target.closest('.timetable-course, button, input, textarea, select, a')) return;
     startX = event.clientX;
     startY = event.clientY;
-    startTime = Date.now();
+    active = true;
+    locked = false;
+    width = viewport.clientWidth || 1;
+    const track = getTrack();
+    if (track) track.style.transition = 'none';
   });
-  els.courseList.addEventListener('pointerup', (event) => {
-    if (event.pointerType === 'touch') return;
-    finishSwipe(event.clientX, event.clientY);
+
+  viewport.addEventListener('pointermove', (event) => {
+    if (!active || animating) return;
+    const dx = event.clientX - startX;
+    const dy = event.clientY - startY;
+    if (!locked) {
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      if (Math.abs(dy) >= Math.abs(dx)) {
+        active = false;
+        return;
+      }
+      locked = true;
+      try {
+        viewport.setPointerCapture(event.pointerId);
+      } catch (error) {
+        /* ignore capture errors */
+      }
+    }
+    const track = getTrack();
+    if (!track) return;
+    const atStart = clampMinWeek(activeWeek - 1) === activeWeek;
+    const move = atStart && dx > 0 ? dx * 0.35 : dx;
+    track.style.transform = `translateX(${move}px)`;
+  });
+
+  const release = (event) => {
+    if (!active) return;
+    active = false;
+    if (!locked) return;
+    locked = false;
+    const track = getTrack();
+    const dx = event.clientX - startX;
+    const dir = dx < 0 ? 1 : -1;
+    const threshold = Math.max(64, width * 0.25);
+    if (track && Math.abs(dx) >= threshold && clampMinWeek(activeWeek + dir) !== activeWeek) {
+      commitWeek(dir, track);
+    } else if (track) {
+      track.style.transition = 'transform .2s ease';
+      track.style.transform = 'translateX(0)';
+    }
+  };
+
+  viewport.addEventListener('pointerup', release);
+  viewport.addEventListener('pointercancel', () => {
+    active = false;
+    locked = false;
+    const track = getTrack();
+    if (track) {
+      track.style.transition = 'transform .2s ease';
+      track.style.transform = 'translateX(0)';
+    }
   });
 }
 

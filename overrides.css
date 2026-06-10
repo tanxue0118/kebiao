@@ -897,3 +897,73 @@ textarea,
     place-items: center;
   }
 }
+
+#courseList {
+  overflow: hidden !important;
+  touch-action: pan-y;
+}
+
+#courseList .timetable-track {
+  width: 100%;
+  will-change: transform;
+}
+
+.picker-field {
+  display: grid;
+  gap: 10px;
+}
+
+.picker-list {
+  display: grid;
+  gap: 8px;
+}
+
+.picker-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) 38px;
+  align-items: center;
+  gap: 8px;
+}
+
+.time-slot-row {
+  grid-template-columns: 64px minmax(0, 1fr) auto minmax(0, 1fr) 38px;
+}
+
+.picker-row input[type="date"],
+.picker-row input[type="time"] {
+  width: 100%;
+  min-width: 0;
+}
+
+.slot-number,
+.picker-sep {
+  color: rgba(17, 17, 17, .62);
+  font-size: .88rem;
+  white-space: nowrap;
+}
+
+.picker-remove,
+.picker-add {
+  min-height: 38px !important;
+}
+
+.picker-remove {
+  padding: 0 !important;
+  border-radius: 999px !important;
+}
+
+.picker-add {
+  justify-self: start;
+}
+
+@media (max-width: 420px) {
+  .picker-row,
+  .time-slot-row {
+    grid-template-columns: 1fr auto;
+  }
+
+  .time-slot-row .slot-number,
+  .picker-row .picker-sep {
+    display: none;
+  }
+}

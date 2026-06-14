@@ -970,7 +970,14 @@ function openOptionPicker({ title, options, value, onSelect }) {
   panel.className = 'option-picker-panel';
   const heading = document.createElement('div');
   heading.className = 'option-picker-heading';
-  heading.innerHTML = `<strong>${escapeHtml(title)}</strong><button type="button" aria-label="鍏抽棴">脳</button>`;
+  const headingTitle = document.createElement('strong');
+  headingTitle.textContent = title;
+  const closeButton = document.createElement('button');
+  closeButton.type = 'button';
+  closeButton.className = 'option-picker-close';
+  closeButton.setAttribute('aria-label', t('cancel'));
+  closeButton.textContent = '×';
+  heading.append(headingTitle, closeButton);
   const list = document.createElement('div');
   list.className = 'option-picker-list';
   options.forEach((option) => {
@@ -984,7 +991,7 @@ function openOptionPicker({ title, options, value, onSelect }) {
     });
     list.appendChild(item);
   });
-  heading.querySelector('button').addEventListener('click', () => backdrop.remove());
+  closeButton.addEventListener('click', () => backdrop.remove());
   backdrop.addEventListener('click', (event) => {
     if (event.target === backdrop) backdrop.remove();
   });
@@ -2384,3 +2391,4 @@ function showStatus(message) {
     renderToday();
   }, 2200);
 }
+

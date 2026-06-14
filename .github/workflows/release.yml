@@ -18,7 +18,5 @@ jobs:
       - name: Publish release
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            dist/kebiao.apk
-            dist/课程表.apk
+          files: dist/kebiao.apk
           generate_release_notes: true

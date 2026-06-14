@@ -929,6 +929,72 @@ textarea,
   grid-template-columns: 64px minmax(0, 1fr) auto minmax(0, 1fr) 38px;
 }
 
+.language-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.language-options label {
+  min-height: 42px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid rgba(17, 17, 17, .10);
+  border-radius: 12px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, calc(var(--card-opacity, .42) * .24));
+}
+
+.language-options input {
+  margin: 0;
+  accent-color: var(--blue);
+}
+
+html,
+body,
+.hero,
+.panel,
+.card,
+.course-card,
+.today-course,
+.app-tabs,
+button,
+.file-button,
+input,
+select,
+textarea,
+#courseList .timetable-grid,
+#courseList .timetable-header,
+#courseList .timetable-cell {
+  transition:
+    background-color .18s ease,
+    background .18s ease,
+    border-color .18s ease,
+    color .18s ease,
+    box-shadow .18s ease,
+    filter .18s ease;
+}
+
+#courseList .timetable-header.is-holiday-day,
+#courseList .timetable-cell.is-holiday-day {
+  border-color: rgba(189, 116, 24, .30) !important;
+  background: rgba(189, 116, 24, .11) !important;
+}
+
+#courseList .timetable-header.is-holiday-day span {
+  color: var(--amber);
+  font-weight: 800;
+}
+
+@media (max-width: 560px) {
+  .language-options {
+    grid-template-columns: 1fr;
+  }
+}
+
 .picker-row input[type="date"],
 .picker-row input[type="time"] {
   width: 100%;

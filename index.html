@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
@@ -157,7 +157,7 @@
           </button>
           <button type="button" data-settings-section-target="view">
             <strong>外观设置</strong>
-            <span>显示内容、个性化、背景</span>
+            <span>语言、显示内容、个性化、背景</span>
           </button>
           <button type="button" data-settings-section-target="data">
             <strong>数据管理</strong>
@@ -183,10 +183,22 @@
                 <input id="semesterTotalWeeks" type="number" min="1" max="30" step="1">
               </label>
             </div>
-            <div class="field picker-field">
-              <span>假期时间段</span>
-              <div id="holidayList" class="picker-list"></div>
-              <button type="button" id="addHolidayBtn" class="picker-add">+ 添加假期</button>
+          </div>
+
+          <div class="settings-divider" aria-hidden="true"></div>
+
+          <div class="settings-group" data-settings-section="view" hidden>
+            <button class="settings-back" type="button" data-settings-back>‹ 返回设置</button>
+            <div class="section-title">
+              <div>
+                <p>语言</p>
+                <h2>多语言</h2>
+              </div>
+            </div>
+            <div class="language-options" id="languageModeGroup" role="radiogroup" aria-label="语言">
+              <label><input type="radio" name="languageMode" value="zh-CN"> 简体中文</label>
+              <label><input type="radio" name="languageMode" value="zh-TW"> 繁體中文</label>
+              <label><input type="radio" name="languageMode" value="en"> English</label>
             </div>
           </div>
 

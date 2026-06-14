@@ -823,9 +823,14 @@ textarea,
 }
 
 .custom-select-button::after {
-  content: "⌄";
+  content: "";
+  width: 8px;
+  height: 8px;
   margin-left: auto;
-  color: rgba(17, 17, 17, .58);
+  border-right: 2px solid rgba(17, 17, 17, .58);
+  border-bottom: 2px solid rgba(17, 17, 17, .58);
+  transform: rotate(45deg) translateY(-2px);
+  flex: 0 0 auto;
 }
 
 .custom-time-toggle {

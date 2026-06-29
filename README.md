@@ -1,8 +1,6 @@
 # 课程表
 
 一款轻量课程表应用，适合自己、同学或宿舍共用。
-首次打开是空课表，不内置默认课表，也不会自动拉取 GitHub 或 `schedule.json`；所有数据都由你自己导入或手动创建。
-
 [![Release](https://img.shields.io/github/v/release/tanxue0118/kebiao?display_name=tag)](https://github.com/tanxue0118/kebiao/releases/latest)
 [![License](https://img.shields.io/badge/license-MIT-2ea44f)](./LICENSE)
 
@@ -61,11 +59,6 @@
 `dayOfWeek` 取 `1-7`，`weekParity` 取 `all`、`odd`、`even`。
 如果你用的是自定义时间，导入数据里也可以保留 `startTime` / `endTime`。
 
-## 打包与发布
-
-- 本地重新打包：`.\apk-build\build-apk.ps1`
-- APK 产物：`dist/kebiao.apk`
-- GitHub Release：推送 `v*` tag 会自动触发 `.github/workflows/release.yml`
 
 ## 项目结构
 

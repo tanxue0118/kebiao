@@ -6,6 +6,16 @@
 [![Release](https://img.shields.io/github/v/release/tanxue0118/kebiao?display_name=tag)](https://github.com/tanxue0118/kebiao/releases/latest)
 [![License](https://img.shields.io/badge/license-MIT-2ea44f)](./LICENSE)
 
+## 预览
+
+<p align="center">
+  <img src="./picture/课表预览.jpg" alt="课表预览" width="96%" />
+</p>
+
+<p align="center">
+  <img src="./picture/小组件预览.jpg" alt="小组件预览" width="48%" />
+</p>
+
 ## 核心功能
 
 - 多课表管理：新建、切换、复制、重命名、删除。
@@ -64,6 +74,16 @@
 - `apk-build/src/`：Android WebView 容器和小组件
 - `apk-build/build-apk.ps1`：本地打包脚本
 - `tests/`：静态回归测试
+
+## Star 趋势
+
+<a href="https://www.star-history.com/?repos=tanxue0118%2Fkebiao&type=date&legend=top-left">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=tanxue0118/kebiao&type=date&theme=dark&legend=top-left" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=tanxue0118/kebiao&type=date&legend=top-left" />
+    <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=tanxue0118/kebiao&type=date&legend=top-left" />
+  </picture>
+</a>
 
 ## 许可证
 

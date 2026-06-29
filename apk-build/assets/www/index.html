@@ -1,13 +1,11 @@
 <!doctype html>
+<!-- Competition feature build: CSS and JavaScript are split for the website and APK assets. -->
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#eef5ff">
   <title>课程表</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="overrides.css">
 </head>
@@ -28,6 +26,7 @@
             <small id="dateRange">--</small>
           </div>
         </div>
+        <button class="today-jump search-trigger" id="searchBtn" type="button" aria-label="搜索"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></button>
         <button class="today-jump" id="todayJumpBtn" type="button">今天</button>
       </div>
     </header>
@@ -44,11 +43,12 @@
         <div class="section-title">
           <div>
             <p>今日概览</p>
-            <h2 id="todaySummary">今天的课程将由脚本填充。</h2>
+            <h2 id="todaySummary">导入课表或手动新增课程后，这里会显示今天的安排。</h2>
+            <span class="active-schedule-badge" id="activeScheduleName"></span>
           </div>
         </div>
         <div class="today-course-list" id="todayCourseList">
-          <div class="timetable-empty">今日课程将由脚本填充。</div>
+          <div class="timetable-empty">今天暂无课程，导入课表后会自动更新。</div>
         </div>
       </section>
     </section>
@@ -63,7 +63,7 @@
           </div>
         </div>
         <div class="timetable" id="courseList" aria-label="周课表">
-          <div class="timetable-empty">课程块将由脚本填充。</div>
+          <div class="timetable-empty">还没有课程，可以先导入 JSON，或手动新增。</div>
         </div>
       </section>
     </section>
@@ -163,6 +163,10 @@
             <strong>数据管理</strong>
             <span>清空、导入、导出课表</span>
           </button>
+          <button type="button" data-settings-section-target="multi">
+            <strong>多课表</strong>
+            <span>创建、切换、复制课表</span>
+          </button>
         </nav>
         <div class="settings-stack" hidden>
           <div class="settings-group" data-settings-section="basic" hidden>
@@ -199,6 +203,23 @@
               <label><input type="radio" name="languageMode" value="zh-CN"> 简体中文</label>
               <label><input type="radio" name="languageMode" value="zh-TW"> 繁體中文</label>
               <label><input type="radio" name="languageMode" value="en"> English</label>
+            </div>
+          </div>
+
+          <div class="settings-divider" aria-hidden="true"></div>
+
+          <div class="settings-group" data-settings-section="view" hidden>
+            <button class="settings-back" type="button" data-settings-back>‹ 返回设置</button>
+            <div class="section-title">
+              <div>
+                <p>主题</p>
+                <h2>显示主题</h2>
+              </div>
+            </div>
+            <div class="language-options" id="themeModeGroup" role="radiogroup" aria-label="主题">
+              <label><input type="radio" name="themeMode" value="light"> <span data-theme-label="light">浅色</span></label>
+              <label><input type="radio" name="themeMode" value="dark"> <span data-theme-label="dark">深色</span></label>
+              <label><input type="radio" name="themeMode" value="auto"> <span data-theme-label="auto">跟随系统</span></label>
             </div>
           </div>
 
@@ -314,6 +335,40 @@
               </label>
               <button class="primary data-control" id="exportScheduleBtn" type="button">导出 JSON</button>
             </div>
+
+            <div class="settings-divider" aria-hidden="true"></div>
+
+            <div class="data-actions">
+              <button class="primary data-control" id="exportImageBtn" type="button">导出图片</button>
+              <button class="primary data-control" id="exportIcsBtn" type="button">导出 ICS</button>
+              <label class="file-button data-file-button data-control">
+                <input id="importIcsInput" type="file" accept="text/calendar,.ics">
+                导入 ICS
+              </label>
+            </div>
+
+            <div class="settings-divider" aria-hidden="true"></div>
+
+            <div class="data-actions">
+              <button class="primary data-control" id="shareCodeBtn" type="button">生成分享码</button>
+              <button class="primary data-control" id="importShareCodeBtn" type="button">导入分享码</button>
+            </div>
+          </div>
+
+          <div class="settings-divider" aria-hidden="true"></div>
+
+          <div class="settings-group" data-settings-section="multi" hidden>
+            <button class="settings-back" type="button" data-settings-back>‹ 返回设置</button>
+            <div class="section-title">
+              <div>
+                <p>多课表</p>
+                <h2>课表管理</h2>
+              </div>
+            </div>
+            <div class="schedule-list" id="scheduleList"></div>
+            <div class="data-actions">
+              <button class="primary data-control" id="createScheduleBtn" type="button">新建课表</button>
+            </div>
           </div>
         </div>
       </section>
@@ -331,7 +386,6 @@
       <button class="edit-button" type="button">编辑</button>
     </article>
   </template>
-
   <script src="app.js"></script>
 </body>
 </html>

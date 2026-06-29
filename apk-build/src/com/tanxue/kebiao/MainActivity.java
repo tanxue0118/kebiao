@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
+import android.view.WindowManager;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
@@ -22,6 +23,9 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        getWindow().setFlags(
+                WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
+                WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED);
         getWindow().setStatusBarColor(Color.rgb(238, 245, 248));
         getWindow().setNavigationBarColor(Color.rgb(238, 245, 248));
         int systemUiFlags = 0;
@@ -35,6 +39,10 @@ public class MainActivity extends Activity {
 
         webView = new WebView(this);
         webView.setBackgroundColor(Color.rgb(223, 238, 244));
+        webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            webView.setRendererPriorityPolicy(WebView.RENDERER_PRIORITY_IMPORTANT, true);
+        }
         setContentView(webView);
 
         WebSettings settings = webView.getSettings();
@@ -45,6 +53,9 @@ public class MainActivity extends Activity {
         settings.setAllowContentAccess(true);
         settings.setLoadWithOverviewMode(true);
         settings.setUseWideViewPort(true);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            settings.setOffscreenPreRaster(true);
+        }
 
         webView.addJavascriptInterface(new ScheduleBridge(this), "ScheduleBridge");
         webView.setWebViewClient(new WebViewClient());

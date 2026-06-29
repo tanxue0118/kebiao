@@ -30,6 +30,61 @@ function Invoke-Tool {
     }
 }
 
+function Repair-ApkAssetEntryPaths {
+    param(
+        [string]$ApkPath
+    )
+
+    Add-Type -AssemblyName System.IO.Compression
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+
+    $zip = [System.IO.Compression.ZipFile]::Open($ApkPath, [System.IO.Compression.ZipArchiveMode]::Update)
+    try {
+        $entries = @($zip.Entries | Where-Object { $_.FullName.StartsWith("assets/", [System.StringComparison]::Ordinal) -and $_.FullName.Contains("\") })
+        foreach ($entry in $entries) {
+            $fixedName = $entry.FullName.Replace("\", "/")
+            $existing = $zip.GetEntry($fixedName)
+            if ($existing) { $existing.Delete() }
+
+            $fixedEntry = $zip.CreateEntry($fixedName, [System.IO.Compression.CompressionLevel]::Optimal)
+            $source = $entry.Open()
+            $target = $fixedEntry.Open()
+            try {
+                $source.CopyTo($target)
+            } finally {
+                $target.Dispose()
+                $source.Dispose()
+            }
+            $entry.Delete()
+        }
+    } finally {
+        $zip.Dispose()
+    }
+}
+
+function Assert-ApkWebAssets {
+    param(
+        [string]$ApkPath
+    )
+
+    Add-Type -AssemblyName System.IO.Compression
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+
+    $zip = [System.IO.Compression.ZipFile]::OpenRead($ApkPath)
+    try {
+        $assetEntries = @($zip.Entries | Where-Object { $_.FullName.StartsWith("assets/", [System.StringComparison]::Ordinal) })
+        if (-not ($assetEntries | Where-Object { $_.FullName -eq "assets/www/index.html" })) {
+            throw "APK is missing assets/www/index.html. WebView will not be able to open the app."
+        }
+        $badEntry = $assetEntries | Where-Object { $_.FullName.Contains("\") } | Select-Object -First 1
+        if ($badEntry) {
+            throw "APK contains an asset path with Windows separators: $($badEntry.FullName)"
+        }
+    } finally {
+        $zip.Dispose()
+    }
+}
+
 $apkRoot = $PSScriptRoot
 $projectRoot = Split-Path -Parent $apkRoot
 
@@ -128,6 +183,7 @@ Invoke-Tool $d8 $d8Args
 
 Write-Host "Adding dex to APK..."
 Copy-Item -LiteralPath $unsignedNoDex -Destination $unsignedApk -Force
+Repair-ApkAssetEntryPaths $unsignedApk
 Add-Type -AssemblyName System.IO.Compression
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $zip = [System.IO.Compression.ZipFile]::Open($unsignedApk, [System.IO.Compression.ZipArchiveMode]::Update)
@@ -163,6 +219,9 @@ Copy-Item -LiteralPath $signedApk -Destination $distApk -Force
 if (Test-Path -LiteralPath "$signedApk.idsig") {
     Copy-Item -LiteralPath "$signedApk.idsig" -Destination $distIdsig -Force
 }
+
+Write-Host "Checking WebView assets..."
+Assert-ApkWebAssets $distApk
 
 $mirrorParent = Join-Path $apkRoot "out"
 $mirrorDir = Join-Path $mirrorParent "local-build"

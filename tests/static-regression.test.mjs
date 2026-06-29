@@ -4,7 +4,36 @@ import { createHash } from 'node:crypto';
 import vm from 'node:vm';
 
 const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
+const readBuffer = (path) => readFileSync(new URL(`../${path}`, import.meta.url));
 const hash = (path) => createHash('sha256').update(read(path)).digest('hex');
+
+function listZipEntries(buffer) {
+  const eocdSignature = 0x06054b50;
+  const centralSignature = 0x02014b50;
+  const minEocdOffset = Math.max(0, buffer.length - 0xffff - 22);
+  let eocdOffset = -1;
+  for (let offset = buffer.length - 22; offset >= minEocdOffset; offset -= 1) {
+    if (buffer.readUInt32LE(offset) === eocdSignature) {
+      eocdOffset = offset;
+      break;
+    }
+  }
+  assert.notEqual(eocdOffset, -1, 'APK should contain a ZIP end-of-central-directory record');
+
+  const entryCount = buffer.readUInt16LE(eocdOffset + 10);
+  let offset = buffer.readUInt32LE(eocdOffset + 16);
+  const entries = [];
+  for (let index = 0; index < entryCount; index += 1) {
+    assert.equal(buffer.readUInt32LE(offset), centralSignature, 'APK central directory should be readable');
+    const nameLength = buffer.readUInt16LE(offset + 28);
+    const extraLength = buffer.readUInt16LE(offset + 30);
+    const commentLength = buffer.readUInt16LE(offset + 32);
+    const nameStart = offset + 46;
+    entries.push(buffer.toString('utf8', nameStart, nameStart + nameLength));
+    offset = nameStart + nameLength + extraLength + commentLength;
+  }
+  return entries;
+}
 
 const rootIndex = read('index.html');
 const rootApp = read('app.js');
@@ -19,10 +48,17 @@ const apkSchedule = JSON.parse(read('apk-build/assets/www/schedule.json'));
 const scheduleStore = read('apk-build/src/com/tanxue/kebiao/ScheduleStore.java');
 const androidManifest = read('apk-build/AndroidManifest.xml');
 const mainActivity = read('apk-build/src/com/tanxue/kebiao/MainActivity.java');
+const distApkEntries = listZipEntries(readBuffer('dist/kebiao.apk'));
 
 for (const file of ['index.html', 'app.js', 'styles.css', 'overrides.css', 'schedule.json']) {
   assert.equal(hash(file), hash(`apk-build/assets/www/${file}`), `${file} must match APK asset copy`);
 }
+
+assert.ok(distApkEntries.includes('assets/www/index.html'), 'APK must package WebView entrypoint as assets/www/index.html');
+assert.ok(
+  !distApkEntries.some((entry) => entry.startsWith('assets/') && entry.includes('\\')),
+  'APK asset paths must use forward slashes so file:///android_asset/www/index.html can load'
+);
 
 for (const html of [rootIndex, apkIndex]) {
   for (const id of [

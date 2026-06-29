@@ -1,97 +1,70 @@
 # 课程表
 
-一款轻量课程表应用，适合自己、同学或宿舍一起使用。首次打开是空课表，可以导入 JSON，或直接手动新增课程。
+一款轻量课程表应用，适合自己、同学或宿舍共用。
+首次打开是空课表，不内置默认课表，也不会自动拉取 GitHub 或 `schedule.json`；所有数据都由你自己导入或手动创建。
 
 [![Release](https://img.shields.io/github/v/release/tanxue0118/kebiao?display_name=tag)](https://github.com/tanxue0118/kebiao/releases/latest)
 [![License](https://img.shields.io/badge/license-MIT-2ea44f)](./LICENSE)
-![GitHub Repo stars](https://img.shields.io/github/stars/tanxue0118/kebiao)
 
-## 预览
+## 核心功能
 
-<p align="center">
-  <img src="picture/课表预览.jpg" alt="课表预览" width="96%" />
-</p>
+- 多课表管理：新建、切换、复制、重命名、删除。
+- 课程编辑：课程名、老师、地点、星期、节次、周次、单双周、自定义时间。
+- 课程搜索：按课程名、老师、地点快速定位课程。
+- 主题切换：浅色、深色、跟随系统。
+- 导入导出：JSON、ICS、PNG、颜文字分享码、二维码显示和扫码导入。
+- 桌面小组件：今日课表、周课表。
+- 本地优先：数据保存在本机缓存，清空只影响当前设备。
 
-<p align="center">
-  <img src="picture/小组件预览.jpg" alt="小组件预览" width="48%" />
-</p>
+## 如何使用
 
-## 特点
+1. 打开应用，默认就是空课表。
+2. 在“数据管理”里导入 JSON / ICS，或者直接手动新增课程。
+3. 需要多份课表时，到“课表管理”里新建或切换。
+4. 需要分享时，可以导出图片、ICS、分享码，或者直接显示二维码。
 
-- 开箱就是自己的：首次打开不再自动拉取任何默认课表，数据从本地导入或手动创建。
-- 改课很顺手：点课程直接编辑，点空白处就能新增，导入、导出、一键清空都在同一套流程里。
-- 导入更明确：支持 JSON 导入，也可以直接手动新增和编辑课程。
-- 看法更贴近日常：今日概览、周课表和桌面小组件一起做，平时最常看的信息都在。
-- 课表更灵活：支持自定义节次时间、单门课程自定义时间、单双周、周次范围等常见排课方式。
-- 样式能按习惯调：背景、显示字段、圆角、间距、格子高度、透明度等个性化配置都保留了。
-- 小组件也会同步：Web 端保存后会刷新 Android 桌面小组件，尽量保持应用里看到的内容一致。
-
-## 默认行为
-
-- 首次打开为空课表，不会自动联网拉取任何人的默认课表。
-- 课表数据保存在本地缓存里。
-- 导入 JSON 或手动新增课程后，会立即保存到本地。
-- 清空课表只会清空本机当前数据，不会触发远程同步。
-
-## 快速上手
-
-1. 先正常打开应用。
-2. 在“设置 → 数据管理”里导入自己的课表 JSON。
-3. 也可以直接点课表空白格手动新增课程。
-4. 需要改课时，直接点课表里的课程或空白格。
-
-## 为什么 APK 这么轻
-
-因为它没有把一整套重型跨端运行时塞进安装包里。
-
-- 页面本体就是 `HTML + CSS + JavaScript`
-- Android 侧只负责 WebView 壳和原生小组件
-- 不依赖 React Native、Flutter、Electron 这类大运行时
-- 不带数据库和一堆第三方 UI 包
-- 课表数据直接用 JSON，本地保存也只是 `localStorage` 和 `SharedPreferences`
-
-所以安装包主要是静态页面、少量 Java 类和 Android 资源，体积小，启动也快。
-
-## 课表格式
-
-详细字段规则和 AI 编写模板见 [编写规则.md](./编写规则.md)。
-
-下面是一个简化示例，方便快速理解结构：
+## 数据格式
 
 ```json
 {
+  "semesterStart": "2026-03-02",
+  "semesterWeeks": 16,
+  "timeSlots": [
+    { "number": 1, "startTime": "08:00", "endTime": "08:45" },
+    { "number": 2, "startTime": "08:55", "endTime": "09:40" }
+  ],
   "courses": [
     {
-      "id": "linear-algebra",
-      "name": "线性代数",
-      "teacher": "路老师",
-      "position": "厚德楼A305",
-      "day": 1,
-      "startSection": 5,
-      "endSection": 6,
-      "weeks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+      "name": "高等数学",
+      "teacher": "张老师",
+      "location": "A305",
+      "dayOfWeek": 1,
+      "weeks": "1-16",
+      "weekParity": "all",
+      "startSection": 1,
+      "endSection": 2
     }
   ]
 }
 ```
 
-如果是考试、临时安排或需要自定义时间的课程，直接看 [编写规则.md](./编写规则.md) 里的完整写法。
+`dayOfWeek` 取 `1-7`，`weekParity` 取 `all`、`odd`、`even`。
+如果你用的是自定义时间，导入数据里也可以保留 `startTime` / `endTime`。
 
-## 下载
+## 打包与发布
 
-- 仓库：[tanxue0118/kebiao](https://github.com/tanxue0118/kebiao)
-- Release：[latest](https://github.com/tanxue0118/kebiao/releases/latest)
+- 本地重新打包：`.\apk-build\build-apk.ps1`
+- APK 产物：`dist/kebiao.apk`
+- GitHub Release：推送 `v*` tag 会自动触发 `.github/workflows/release.yml`
 
-## Star 趋势
+## 项目结构
 
-<a href="https://www.star-history.com/?repos=tanxue0118%2Fkebiao&type=date&legend=top-left">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=tanxue0118/kebiao&type=date&theme=dark&legend=top-left" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=tanxue0118/kebiao&type=date&legend=top-left" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=tanxue0118/kebiao&type=date&legend=top-left" />
- </picture>
-</a>
+- `index.html`、`app.js`、`styles.css`：Web 端主界面
+- `apk-build/assets/www/`：APK 里使用的静态资源
+- `apk-build/src/`：Android WebView 容器和小组件
+- `apk-build/build-apk.ps1`：本地打包脚本
+- `tests/`：静态回归测试
 
-## 开源协议
+## 许可证
 
-本项目采用 [MIT License](./LICENSE)。
+MIT
